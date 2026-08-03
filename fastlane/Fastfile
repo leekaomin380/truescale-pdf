@@ -56,6 +56,20 @@ def build_store_archive
 end
 
 platform :mac do
+  desc "Update App Store metadata only; never upload a binary or submit for review"
+  lane :metadata_only do
+    setup_api_key
+    upload_to_app_store(
+      platform: "osx",
+      skip_binary_upload: true,
+      skip_metadata: false,
+      skip_screenshots: true,
+      submit_for_review: false,
+      run_precheck_before_submit: false,
+      force: true
+    )
+  end
+
   desc "Upload an already exported pkg to App Store Connect; never change metadata or submit for review"
   lane :upload_existing_pkg_only do |options|
     setup_api_key
