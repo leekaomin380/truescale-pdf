@@ -23,16 +23,11 @@ swiftc \
     "$MAC_DIR/OpenSourceComponentsView.swift" \
     "$MAC_DIR/ContentView.swift" \
     "$MAC_DIR/ConversionViewModel.swift" \
-    "$MAC_DIR/wechat/WeChatExtractor.swift" \
-    "$MAC_DIR/wechat/ImageInliner.swift" \
-    "$MAC_DIR/wechat/LocalExtraction.swift" \
     -o "$APP_DIR/Contents/MacOS/TrueScalePDF" \
     -framework SwiftUI \
     -framework AppKit \
     -framework PDFKit \
     -framework UniformTypeIdentifiers \
-    -framework WebKit \
-    -framework CoreImage \
     -target arm64-apple-macos14.0
 
 echo ">>> 复制 Info.plist"
@@ -49,9 +44,6 @@ if [ -f "$ICON_SRC" ]; then
     echo ">>> 复制图标"
     cp "$ICON_SRC" "$APP_DIR/Contents/Resources/AppIcon.icns"
 fi
-
-echo ">>> 复制 JS 抽取器"
-cp "$MAC_DIR/wechat/wechat_extractor.js" "$APP_DIR/Contents/Resources/wechat_extractor.js"
 
 echo ">>> 复制运行时依赖"
 cp "$REPO/config.sh" "$APP_DIR/Contents/Resources/config.sh"

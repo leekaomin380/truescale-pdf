@@ -7,37 +7,29 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		17C4D71068256732B53780A9 /* WeChatExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FAFD2EDC05E8CA360DEC2EB /* WeChatExtractor.swift */; };
 		3094569A21E7384505688BA9 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BC422370B13448AA58F8CF1 /* ContentView.swift */; };
-		30F777E1E1C280DF71C85180 /* wechat_extractor.js in Resources */ = {isa = PBXBuildFile; fileRef = 52061B1DEFD9B8AA14F04F8E /* wechat_extractor.js */; };
 		32DB4054DC33C6519B655EE8 /* ConversionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91C8381329F5A2A6466F5A1E /* ConversionViewModel.swift */; };
 		3C4E029D1ABB605399D356EA /* TrueScalePDFApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54A682C00B8FD366DDFBB68E /* TrueScalePDFApp.swift */; };
 		675FA4AF19857B045A941963 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 7E6D7519611A023303B2F147 /* AppIcon.icns */; };
 		6E2D4396228912B4657B0B9F /* book-filter.lua in Resources */ = {isa = PBXBuildFile; fileRef = D1977E77E59B5B59BC89FBB2 /* book-filter.lua */; };
-		761BC6A5A6D9ABD27E104416 /* LocalExtraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D1658FC09FDA93259F714E8 /* LocalExtraction.swift */; };
 		897D3A99C9B46AA9C866990A /* OpenSourceComponentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C772EFD00D82DBEBF7A0E2 /* OpenSourceComponentsView.swift */; };
 		8E5A41771EB5A1E4577970E9 /* config.sh in Resources */ = {isa = PBXBuildFile; fileRef = 53621F5D454C04CE7F1BD4ED /* config.sh */; };
 		9A9FE2C4F64E1129BAFF3F02 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 982C587B3160789124AFB5EA /* LICENSE */; };
 		9EBABB7F66EAFCD05B58125B /* THIRD-PARTY-LICENSES.md in Resources */ = {isa = PBXBuildFile; fileRef = 93C3BC0A3D89DF21A7405CC2 /* THIRD-PARTY-LICENSES.md */; };
 		A14FAC6072F015C08E3BFCA4 /* book.sh in Resources */ = {isa = PBXBuildFile; fileRef = B7AEA4682172ED7FEF988F35 /* book.sh */; };
 		A28209753B192FC0F140E06E /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 355C24FEEFC4FD7C6BCAAE5E /* PrivacyInfo.xcprivacy */; };
-		A4BBEEA31A6912C409CD2573 /* ImageInliner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 070E21FBCD050AD5B7636145 /* ImageInliner.swift */; };
 		CB8FC77E6A9D509233A604F9 /* deliver.typ in Resources */ = {isa = PBXBuildFile; fileRef = 6D0ED0006900F52696955E1E /* deliver.typ */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		070E21FBCD050AD5B7636145 /* ImageInliner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageInliner.swift; sourceTree = "<group>"; };
 		11C772EFD00D82DBEBF7A0E2 /* OpenSourceComponentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenSourceComponentsView.swift; sourceTree = "<group>"; };
 		355C24FEEFC4FD7C6BCAAE5E /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		52061B1DEFD9B8AA14F04F8E /* wechat_extractor.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = wechat_extractor.js; sourceTree = "<group>"; };
 		53621F5D454C04CE7F1BD4ED /* config.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = config.sh; sourceTree = "<group>"; };
 		54A682C00B8FD366DDFBB68E /* TrueScalePDFApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrueScalePDFApp.swift; sourceTree = "<group>"; };
 		6D0ED0006900F52696955E1E /* deliver.typ */ = {isa = PBXFileReference; path = deliver.typ; sourceTree = "<group>"; };
 		6EAC8C85F7EE31E3EF897E09 /* TrueScalePDF.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TrueScalePDF.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7BC422370B13448AA58F8CF1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		7E6D7519611A023303B2F147 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
-		8D1658FC09FDA93259F714E8 /* LocalExtraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalExtraction.swift; sourceTree = "<group>"; };
-		8FAFD2EDC05E8CA360DEC2EB /* WeChatExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeChatExtractor.swift; sourceTree = "<group>"; };
 		91C8381329F5A2A6466F5A1E /* ConversionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionViewModel.swift; sourceTree = "<group>"; };
 		93C3BC0A3D89DF21A7405CC2 /* THIRD-PARTY-LICENSES.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "THIRD-PARTY-LICENSES.md"; sourceTree = "<group>"; };
 		982C587B3160789124AFB5EA /* LICENSE */ = {isa = PBXFileReference; path = LICENSE; sourceTree = "<group>"; };
@@ -46,17 +38,6 @@
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
-		08C5655471A8FAD18041A425 /* wechat */ = {
-			isa = PBXGroup;
-			children = (
-				070E21FBCD050AD5B7636145 /* ImageInliner.swift */,
-				8D1658FC09FDA93259F714E8 /* LocalExtraction.swift */,
-				52061B1DEFD9B8AA14F04F8E /* wechat_extractor.js */,
-				8FAFD2EDC05E8CA360DEC2EB /* WeChatExtractor.swift */,
-			);
-			path = wechat;
-			sourceTree = "<group>";
-		};
 		3E1EA0DF1631D47F8F1CFF76 /* gui */ = {
 			isa = PBXGroup;
 			children = (
@@ -88,7 +69,6 @@
 				11C772EFD00D82DBEBF7A0E2 /* OpenSourceComponentsView.swift */,
 				355C24FEEFC4FD7C6BCAAE5E /* PrivacyInfo.xcprivacy */,
 				54A682C00B8FD366DDFBB68E /* TrueScalePDFApp.swift */,
-				08C5655471A8FAD18041A425 /* wechat */,
 			);
 			path = mac;
 			sourceTree = "<group>";
@@ -170,7 +150,6 @@
 				A14FAC6072F015C08E3BFCA4 /* book.sh in Resources */,
 				8E5A41771EB5A1E4577970E9 /* config.sh in Resources */,
 				CB8FC77E6A9D509233A604F9 /* deliver.typ in Resources */,
-				30F777E1E1C280DF71C85180 /* wechat_extractor.js in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -205,11 +184,8 @@
 			files = (
 				3094569A21E7384505688BA9 /* ContentView.swift in Sources */,
 				32DB4054DC33C6519B655EE8 /* ConversionViewModel.swift in Sources */,
-				A4BBEEA31A6912C409CD2573 /* ImageInliner.swift in Sources */,
-				761BC6A5A6D9ABD27E104416 /* LocalExtraction.swift in Sources */,
 				897D3A99C9B46AA9C866990A /* OpenSourceComponentsView.swift in Sources */,
 				3C4E029D1ABB605399D356EA /* TrueScalePDFApp.swift in Sources */,
-				17C4D71068256732B53780A9 /* WeChatExtractor.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -285,7 +261,6 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				EXECUTABLE_NAME = TrueScalePDF;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -311,7 +286,6 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
-				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				EXECUTABLE_NAME = TrueScalePDF;
 				GENERATE_INFOPLIST_FILE = NO;

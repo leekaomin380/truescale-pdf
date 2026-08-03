@@ -104,9 +104,6 @@ class ConversionViewModel: ObservableObject {
     @Published var pasteText = ""
     @Published var pasteTitle = ""
 
-    // Wechat mode
-    @Published var wechatURL = ""
-
     // EPUB mode
     @Published var sourceFileURL: URL?
     @Published var sourceFileName = ""
@@ -137,9 +134,6 @@ class ConversionViewModel: ObservableObject {
     /// 只要曾渲染过任何东西按钮就一直可用，完全不校验当前输入是否对应那个 PDF。
     /// 后果：贴入新文字后不点预览直接另存，存出去的是【上一篇】—— 真的存错内容。
     ///
-    /// 网页版当年用 DIRTY 标记解决过此问题（index.html 至今仍有），
-    /// 原生 SwiftUI 重写时整套机制丢失，属回归。
-    ///
     /// 现改为「另存自行保证正确」：比对指纹，不一致就先重渲再执行 ——
     /// 这样按钮名义与实际行为一致，用户不必记住「必须先预览」这条前置规则。
     private var renderedFingerprint: String?
@@ -150,7 +144,6 @@ class ConversionViewModel: ObservableObject {
         switch mode {
         case .epub:   source = sourceFileURL?.path ?? ""
         case .text:   source = pasteTitle + "\u{1}" + pasteText
-        case .wechat: source = wechatURL
         }
         return [
             String(describing: mode), source,
@@ -162,7 +155,7 @@ class ConversionViewModel: ObservableObject {
     }
 
     /// 输入种类。与 ContentView 的 InputMode 对应，但 ViewModel 不依赖 View 层类型。
-    enum InputKind { case epub, text, wechat }
+    enum InputKind { case epub, text }
 
     /// 当前处于哪种输入模式 —— 由 View 在切换时同步过来。
     var activeKind: InputKind = .epub
@@ -187,7 +180,7 @@ class ConversionViewModel: ObservableObject {
     @Published private(set) var renderGeneration = 0
 
     /// 记录本次渲染对应的输入 —— 渲染成功后调用。
-    /// 三条渲染路径（EPUB / 文本 / 公众号）都在成功时收敛到这里，
+    /// 两条渲染路径（电子书 / 文本）都在成功时收敛到这里，
     /// 故世代号在此自增可保证「渲染成功」与「预览刷新」严格一一对应。
     func markRendered() {
         renderedFingerprint = currentFingerprint(mode: activeKind)
@@ -210,7 +203,6 @@ class ConversionViewModel: ObservableObject {
         switch activeKind {
         case .epub:   convertEpub()
         case .text:   convertText()
-        case .wechat: convertWechat()
         }
     }
 
@@ -491,125 +483,14 @@ class ConversionViewModel: ObservableObject {
         renderMarkdown(finalText, title: title)
     }
 
-    func convertWechat() {
-        let raw = wechatURL.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !raw.isEmpty else {
-            setStatus("请先粘贴链接", .err)
-            return
-        }
-        // 放宽为任意 http(s) 网页 —— 抽取器已支持通用容器（article / main /
-        // .post-content …），公众号仍走其专用选择器优先匹配。
-        // 只校验协议：file:// 与自定义 scheme 会让 WKWebView 读本地文件或触发
-        // 外部 app，不该由一个粘贴框决定。
-        guard let url = URL(string: raw),
-              let scheme = url.scheme?.lowercased(),
-              scheme == "http" || scheme == "https",
-              url.host?.isEmpty == false else {
-            setStatus("请粘贴 http(s) 开头的网页链接", .err)
-            return
-        }
-        setStatus("抓取网页…", .run)
-        isConverting = true
-
-        fetchWechatHTML(url: url) { [weak self] result in
-            guard let self = self else { return }
-            switch result {
-            case .failure(let e):
-                DispatchQueue.main.async {
-                    self.isConverting = false
-                    self.setStatus("抓取失败：\(e.localizedDescription)", .err)
-                    self.finishPendingRender(success: false)
-                }
-            case .success(let html):
-                DispatchQueue.main.async {
-                    self.setStatus("抽取正文…", .run)
-                    LocalExtraction.run(html: html, url: raw) { [weak self] outcome in
-                        guard let self = self else { return }
-                        guard let article = outcome.article else {
-                            DispatchQueue.main.async {
-                                self.isConverting = false
-                                let msg: String
-                                if outcome.reason.contains("RISK_GRAY") {
-                                    msg = "微信要求验证，请稍后再试或在微信中打开一次该文章"
-                                } else if outcome.reason.contains("CONTENT_GONE") {
-                                    msg = "该文章已被删除或无法查看"
-                                } else if outcome.reason.contains("NEEDS_JS") {
-                                    // 骨架在但正文空 —— 页面靠 JS 渲染，而 WKWebView
-                                    // 为隐私与速度屏蔽了全部网络请求，故拿不到正文。
-                                    // 这类站点本工具无解，直接给出可行的替代路径。
-                                    msg = "该页面正文由脚本动态加载，无法抓取 —— 请在浏览器中复制正文，改用「粘贴文本」"
-                                } else if outcome.reason.contains("STRUCT_MISSING") || outcome.reason.contains("EXTRACT_EMPTY") {
-                                    msg = "未能识别正文结构（可能是首页/列表页，请用文章本身的链接）"
-                                } else if outcome.reason == "js_not_bundled" {
-                                    msg = "JS 抽取器未打包，请重新构建 app"
-                                } else {
-                                    msg = "抽取失败：\(outcome.reason)"
-                                }
-                                self.setStatus(msg, .err)
-                                self.finishPendingRender(success: false)
-                            }
-                            return
-                        }
-                        DispatchQueue.main.async {
-                            self.setStatus("下载图片…", .run)
-                        }
-                        let title = article.title
-                        let author = article.author
-                        DispatchQueue.main.async {
-                            if !title.isEmpty { self.pasteTitle = title }
-                        }
-                        var md = article.markdown
-                        if !title.isEmpty && !md.hasPrefix("---") {
-                            let safeTitle = title.replacingOccurrences(of: "\"", with: "\\\"")
-                            var frontmatter = "---\ntitle: \"\(safeTitle)\"\n"
-                            if let author = author, !author.isEmpty {
-                                frontmatter += "author: \"\(author.replacingOccurrences(of: "\"", with: "\\\""))\"\n"
-                            }
-                            frontmatter += "---\n\n"
-                            md = frontmatter + md
-                        }
-                        ImageInliner.inline(markdown: md) { [weak self] finalMd in
-                            DispatchQueue.main.async {
-                                self?.setStatus("渲染中…", .run)
-                            }
-                            self?.renderMarkdown(finalMd, title: title)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private func fetchWechatHTML(url: URL, completion: @escaping (Result<String, Error>) -> Void) {
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.timeoutInterval = 15
-        request.setValue("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
-                         forHTTPHeaderField: "User-Agent")
-
-        URLSession.shared.dataTask(with: request) { data, _, error in
-            if let error = error {
-                completion(.failure(error))
-                return
-            }
-            guard let data = data else {
-                completion(.failure(NSError(domain: "TrueScalePDF", code: 3,
-                    userInfo: [NSLocalizedDescriptionKey: "未获取到网页数据"])))
-                return
-            }
-            let htmlString = String(data: data, encoding: .utf8) ?? String(data: data, encoding: .ascii) ?? ""
-            completion(.success(htmlString))
-        }.resume()
-    }
-
     private func renderMarkdown(_ markdown: String, title: String) {
         DispatchQueue.global(qos: .userInitiated).async { [self] in
             let workDir = FileManager.default.temporaryDirectory.appendingPathComponent("p2q_app")
             try? FileManager.default.createDirectory(at: workDir, withIntermediateDirectories: true)
 
             let slug = String(markdown.hashValue, radix: 16, uppercase: false).prefix(8)
-            let mdFile = workDir.appendingPathComponent("wechat_\(slug).md")
-            let outPdf = workDir.appendingPathComponent("wechat_\(slug).pdf")
+            let mdFile = workDir.appendingPathComponent("text_\(slug).md")
+            let outPdf = workDir.appendingPathComponent("text_\(slug).pdf")
 
             try? markdown.write(to: mdFile, atomically: true, encoding: .utf8)
 

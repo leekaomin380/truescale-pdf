@@ -4,7 +4,6 @@ import UniformTypeIdentifiers
 enum InputMode: String, CaseIterable {
     case epub = "电子书转换"
     case text = "粘贴文本"
-    case wechat = "网页链接"
 }
 
 struct ContentView: View {
@@ -36,7 +35,6 @@ struct ContentView: View {
         switch inputMode {
         case .epub:   return vm.sourceFileURL != nil
         case .text:   return !vm.pasteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        case .wechat: return !vm.wechatURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         }
     }
 
@@ -92,21 +90,18 @@ struct ContentView: View {
                     vm.activeKind = switch newMode {
                         case .epub: .epub
                         case .text: .text
-                        case .wechat: .wechat
                     }
                     vm.sourceFileURL = nil
                     vm.sourceFileName = ""
                     vm.pasteText = ""
                     vm.pasteTitle = ""
-                    vm.wechatURL = ""
                     vm.currentPdfURL = nil
                     vm.totalPages = 0
                     vm.renderMetrics = nil
                 }
 
                 if inputMode == .epub { epubSection }
-                else if inputMode == .text { textSection }
-                else { wechatSection }
+                else { textSection }
 
                 Divider()
 
@@ -210,24 +205,6 @@ struct ContentView: View {
                 .scrollContentBackground(.visible)
                 .border(Color.secondary.opacity(0.2), width: 1)
                 .frame(minHeight: 140)
-        }
-    }
-
-    private var wechatSection: some View {
-        Group {
-            Label("网页文章链接", systemImage: "link")
-                .font(.caption)
-                .foregroundColor(.secondary)
-            TextField("粘贴网页链接（公众号 / 博客文章）", text: $vm.wechatURL)
-                .textFieldStyle(.roundedBorder)
-                .onSubmit {
-                    if !vm.wechatURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        vm.convertWechat()
-                    }
-                }
-
-            // 主操作按钮统一放在下方按钮组，与其它输入模式一致 ——
-            // 此处不再重复一个「解析并预览」。回车仍可直接触发（见上方 onSubmit）。
         }
     }
 
@@ -341,21 +318,19 @@ struct ContentView: View {
                 switch inputMode {
                 case .epub: vm.convertEpub()
                 case .text: vm.convertText()
-                case .wechat: vm.convertWechat()
                 }
             }) {
                 HStack {
                     if vm.isConverting {
                         ProgressView().controlSize(.small)
                     }
-                    Text(inputMode == .wechat ? "解析并预览" : "预览")
+                    Text("预览")
                 }
                 .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
             .disabled(vm.isConverting || (inputMode == .epub && vm.sourceFileURL == nil)
-                      || (inputMode == .text && vm.pasteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-                      || (inputMode == .wechat && vm.wechatURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty))
+                      || (inputMode == .text && vm.pasteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty))
             .keyboardShortcut(.return, modifiers: .command)
 
             Button(action: { vm.ensureFresh { vm.savePDF() } }) {

@@ -24,10 +24,7 @@ targets:
       - path: gui/mac
         includes:
           - "*.swift"
-          - "wechat/*.swift"
       - path: gui/mac/AppIcon.icns
-        buildPhase: resources
-      - path: gui/mac/wechat/wechat_extractor.js
         buildPhase: resources
       - path: config.sh
         buildPhase: resources
@@ -54,7 +51,6 @@ targets:
         ENABLE_APP_SANDBOX: YES
         ENABLE_HARDENED_RUNTIME: YES
         ENABLE_USER_SELECTED_FILES: readwrite
-        ENABLE_OUTGOING_NETWORK_CONNECTIONS: YES
         ARCHS: arm64
         ONLY_ACTIVE_ARCH: YES
     postBuildScripts:

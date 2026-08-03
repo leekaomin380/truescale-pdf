@@ -422,9 +422,9 @@ sec "App Sandbox 探针 · entitlements / TRUESCALE_WORKDIR / 安全域资源管
 ENT_FILE="$DIR/gui/mac/TrueScalePDF.entitlements"
 if [[ -f "$ENT_FILE" ]]; then
   grep -q '<key>com.apple.security.app-sandbox</key>' "$ENT_FILE" \
-    && grep -q '<key>com.apple.security.network.client</key>' "$ENT_FILE" \
     && grep -q '<key>com.apple.security.files.user-selected.read-write</key>' "$ENT_FILE" \
-    && ok "gui/mac/TrueScalePDF.entitlements 包含最小所需的 3 个沙盒权限" \
+    && ! grep -q '<key>com.apple.security.network.client</key>' "$ENT_FILE" \
+    && ok "gui/mac/TrueScalePDF.entitlements 仅包含本地转换所需的沙盒权限" \
     || no "TrueScalePDF.entitlements 缺少必需的 App Sandbox 权限声明"
 else
   no "gui/mac/TrueScalePDF.entitlements 不存在"
@@ -488,6 +488,14 @@ fi
 [[ ! -e "$DIR/deliver.sh" && ! -e "$DIR/gui/server.py" && ! -e "$DIR/gui/index.html" ]] \
   && ok "旧 Quaderno 投递入口已从当前产品删除" \
   || no "当前产品仍包含旧 Quaderno 投递入口"
+
+if [[ ! -d "$DIR/gui/mac/wechat" ]] \
+   && ! rg -i -q 'wechat|微信公众号|网页链接|URLSession|WKWebView|ENABLE_OUTGOING_NETWORK_CONNECTIONS' \
+      "$DIR/gui/mac" "$DIR/gui/build-app.sh" "$DIR/project.yml"; then
+  ok "App 源码、资源与工程配置均不包含网页抓取模块或网络权限"
+else
+  no "App 包仍包含网页抓取实现、入口或网络权限"
+fi
 
 SOURCE_SCRIPT="$DIR/scripts/package-corresponding-source.sh"
 if [[ -x "$SOURCE_SCRIPT" ]]; then

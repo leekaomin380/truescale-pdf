@@ -1,6 +1,6 @@
 1.0.0 首次发布
 
-• EPUB、FB2、HTML、Markdown、粘贴文本和网页文章转 PDF
+• EPUB、FB2、HTML、Markdown 和粘贴文本转 PDF
 • A4、A5 和 B5 常用页面规格
 • 字体、字号、边距与行距调整
 • 完整 PDF 预览与本地保存
