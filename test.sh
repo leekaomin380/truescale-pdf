@@ -24,9 +24,6 @@ ok(){ PASS=$((PASS+1)); if (( VERBOSE )); then print -r -- "  ✅ $1"; fi; retur
 no(){ FAIL=$((FAIL+1));  print -r -- "  ❌ $1" }
 sec(){ print -r -- ""; print -r -- "▸ $1" }
 
-# 目标页面尺寸（A5 显示区，来自 devices.json 的实测值）
-EXPECT_PT="445"                  # 157mm ≈ 445pt，容差见下
-
 # 读取一个 PDF 的所有不同页面尺寸
 page_sizes(){ pdfinfo -f 1 -l "$(pdfinfo "$1" 2>/dev/null|awk '/^Pages/{print $2}')" "$1" 2>/dev/null \
               | grep -oE 'Page +[0-9]+ size: +[0-9.]+ x [0-9.]+' | sed 's/Page *[0-9]* size: *//' | sort -u }
@@ -65,7 +62,7 @@ author: 测试
 EOF
 
 # ---------------------------------------------------------------------------
-sec "I3 · 含 @词 / \$变量 的文本不致渲染失败（deliver.sh 路径）"
+sec "I3 · 含 @词 / \$变量 的文本不致渲染失败"
 # 方言取自 config.sh，不在此写死 —— 否则测的是测试自己的假设，而非真实配置。
 # （本行原先硬编码 markdown-citations-tex_math_dollars，导致 config.sh 改动
 #   完全不被覆盖。2026-07-29 修正。）
@@ -133,7 +130,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-sec "I1 · deliver.sh 输出页面尺寸正确且统一"
+sec "I1 · 渲染模板输出页面尺寸正确且统一"
 SZ=$(page_sizes "$WORK/trap.pdf")
 CNT=$(print -r -- "$SZ" | grep -c x)
 if [[ "$CNT" == "1" ]]; then
@@ -159,12 +156,12 @@ if "$DIR/book.sh" "$WORK/book.epub" -o "$WORK/book.pdf" >/dev/null 2>"$WORK/be";
   [[ "$BCNT" == "1" ]] && ok "I1 全书页面尺寸统一（含标题/目录页）" \
                        || no "I1 全书页面尺寸不统一：$(print -r -- $BSZ | tr '\n' ' ')"
 
-  # I1 绝对尺寸正确：页宽须为 A5 的 ≈445pt。捕获 config.sh PAGE_W 被改错。
+  # I1 绝对尺寸正确：通用工具默认页宽须为 A4 的 ≈595pt。
   BW=$(print -r -- "$BSZ" | head -1 | grep -oE '^[0-9.]+' | cut -d. -f1)
-  if [[ -n "$BW" ]] && (( BW >= 442 && BW <= 448 )); then
-    ok "I1 config.sh 默认页宽正确（${BW}pt ≈ A5 445pt）"
+  if [[ -n "$BW" ]] && (( BW >= 592 && BW <= 598 )); then
+    ok "I1 config.sh 默认页宽正确（${BW}pt ≈ A4 595pt）"
   else
-    no "I1 config.sh 默认页宽错误：${BW}pt（应 ≈445pt，检查 PAGE_W）"
+    no "I1 config.sh 默认页宽错误：${BW}pt（应 ≈595pt，检查 PAGE_W）"
   fi
 
   # I7 大纲存在
@@ -196,23 +193,6 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-sec "I5 · 空 locale + 无 Homebrew 的 PATH 下 deliver.sh 仍可运行"
-# 用 env -i 模拟快捷指令的最小环境。剪贴板置入含中文的内容后运行 --check 的渲染子测
-osascript -e 'set the clipboard to "# 最小环境测试
-中文正文 with English."' 2>/dev/null
-if env -i HOME="$HOME" PATH="/usr/bin:/bin:/usr/sbin:/sbin" \
-     "$DIR/deliver.sh" --check >/dev/null 2>"$WORK/ce"; then
-  ok "deliver.sh --check 在最小环境下通过（PATH/locale 自愈）"
-else
-  # --check 在设备离线等情况也可能非 0，故只断言「渲染子项」没炸
-  if grep -qi 'render' "$WORK/ce" 2>/dev/null && grep -qi 'fail' "$WORK/ce" 2>/dev/null; then
-    no "最小环境下渲染失败（locale/PATH 自愈可能失效）"
-  else
-    ok "deliver.sh 在最小环境下未因 locale/PATH 崩溃"
-  fi
-fi
-
-# ---------------------------------------------------------------------------
 sec "PDF 标题元数据 · frontmatter title 写入 PDF metadata"
 TITLE_MD="$WORK/titled.md"
 cat > "$TITLE_MD" <<'EOF'
@@ -239,11 +219,18 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-sec "配置一致性 · GUI 与 CLI 共享同一套页面几何"
-# devices.json 的 A5 尺寸应与 config.sh 的默认页宽同源（避免分叉）
+sec "配置一致性 · A4 默认与历史测量数据"
+source "$DIR/config.sh"
+if [[ "$PAGE_W" == "210mm" && "$PAGE_H" == "297mm" ]]; then
+  ok "CLI 默认页面为 A4（210 × 297 mm）"
+else
+  no "CLI 默认页面不是 A4：$PAGE_W × $PAGE_H"
+fi
+
+# devices.json 继续保存历史设备实测数据，但不再作为通用 app 的默认页面。
 A5W=$(python3 -c "import json;d=json.load(open('$DIR/devices.json'));print([c['display_mm'][0] for c in d['size_classes'] if c['id']=='10.3in-3x4'][0])" 2>/dev/null)
-[[ -n "$A5W" ]] && ok "devices.json 的 A5 显示区可解析（${A5W}mm）" \
-                || no "devices.json 结构异常，GUI 将取不到尺寸"
+[[ -n "$A5W" ]] && ok "历史实测显示区数据仍可解析（${A5W}mm）" \
+                || no "devices.json 历史测量数据结构异常"
 
 # devices.json 的 A5 尺寸类应标记为已实测（曾因字段改名被错标未实测）
 V=$(python3 -c "import json;d=json.load(open('$DIR/devices.json'));print([c.get('verified') for c in d['size_classes'] if c['id']=='10.3in-3x4'][0])" 2>/dev/null)
@@ -261,7 +248,8 @@ MISS=()
 grep -q 'bodySizeChoices.contains' "$VM" || MISS+=("字号")
 grep -q 'marginChoices.contains'   "$VM" || MISS+=("页边距")
 grep -q 'leadingChoices.contains'  "$VM" || MISS+=("行距")
-(( ${#MISS[@]} == 0 )) && ok "字号/页边距/行距偏好均校验合法性后才采用" \
+grep -q 'pagePresets.contains'     "$VM" || MISS+=("尺寸预设")
+(( ${#MISS[@]} == 0 )) && ok "字号/页边距/行距/尺寸预设偏好均校验合法性后才采用" \
                        || no "偏好未校验合法性：${(j:、:)MISS} —— 失效值会让 Picker 显示空白"
 
 grep -q 'func reconcileSavedFonts' "$VM" \
@@ -274,9 +262,55 @@ grep -q '"9pt", "10pt"' "$CV" \
   || ok "字号/页边距选项表单一来源（ConversionViewModel）"
 
 # ---------------------------------------------------------------------------
+sec "尺寸预设与移除 QUADERNO 导出逻辑"
+grep -q 'hasQuaderno' "$VM" \
+  && no "ConversionViewModel 仍保留 hasQuaderno 状态" \
+  || ok "ConversionViewModel 已清理 hasQuaderno 运行时状态"
+
+grep -q 'deliverToDevice' "$VM" \
+  && no "ConversionViewModel 仍保留 deliverToDevice 方法" \
+  || ok "ConversionViewModel 已移除 QUADERNO 投递逻辑"
+
+grep -q '发送到 Quaderno' "$CV" \
+  && no "ContentView 仍存在「发送到 Quaderno」按钮" \
+  || ok "ContentView 已移除 QUADERNO 投递 UI"
+
+if rg -i -q 'quaderno|--deliver|QUADERNO_APP' \
+     "$DIR/book.sh" "$DIR/config.sh" "$DIR/gui/build-app.sh" \
+     "$DIR/gui/package-runtime.sh" "$DIR/project.yml" "$DIR/gui/mac"; then
+  no "Mac app 的源代码或随包运行时仍包含 QUADERNO 投递路径"
+else
+  ok "Mac app 源代码与随包运行时均已移除 QUADERNO 投递路径"
+fi
+
+PRESET_COUNT=$(sed -n '/static let pagePresets/,/\]/p' "$VM" | grep -c 'PagePreset(' || true)
+if [[ "$PRESET_COUNT" -eq 3 ]] \
+  && grep -q 'id: "a4"' "$VM" \
+  && grep -q 'id: "a5"' "$VM" \
+  && grep -q 'id: "b5"' "$VM"; then
+  ok "PagePreset 声明块包含且仅包含 A4/A5/B5 恰好 3 个规格选项"
+else
+  no "PagePreset 规格选项不等于 3 个或预设 ID 缺失"
+fi
+
+grep -q '长宽约为 A4 的 84%，面积约为 A4 的七成。' "$VM" \
+  && ok "B5 包含正确的辅助说明（中文句号结尾）" \
+  || no "B5 辅助说明缺失或文本标点非中文句号"
+
+if grep -q 'pref.pagePresetID' "$VM" \
+  && grep -q 'selectedPresetID' "$VM" \
+  && grep -q 'selectedPresetID = "a4"' "$VM" \
+  && grep -q 'pagePresets.contains' "$VM" \
+  && grep -q 'selectedPresetID' "$CV"; then
+  ok "按稳定 PagePreset.id 持久化，合法校验并 fallback 到 a4"
+else
+  no "未按稳定 PagePreset.id 持久化或缺乏 ID 合法性校验与 a4 回退"
+fi
+
+# ---------------------------------------------------------------------------
 sec "自包含 · .app 在没有 Homebrew 的机器上必须能渲染"
 # 只有构建过 .app 时才检查（CI 或纯脚本用户不必先构建）
-APP_RES="$DIR/gui/Quaderno Converter.app/Contents/Resources"
+APP_RES="$DIR/gui/TrueScale PDF.app/Contents/Resources"
 if [[ -d "$APP_RES/bin" ]]; then
   # ① 引擎确实在 bundle 内
   [[ -x "$APP_RES/bin/pandoc" && -x "$APP_RES/bin/typst" ]] \
@@ -303,7 +337,7 @@ if [[ -d "$APP_RES/bin" ]]; then
     && ok ".app 已盖封印（存在 _CodeSignature/CodeResources）" \
     || no "bundle 无封印 —— 下载后 macOS 报「已损坏」，无法打开"
 
-  if codesign --verify --deep --strict "$DIR/gui/Quaderno Converter.app" 2>/dev/null; then
+  if codesign --verify --deep --strict "$DIR/gui/TrueScale PDF.app" 2>/dev/null; then
     ok "codesign 校验通过（签名与内容一致）"
   else
     no "codesign 校验失败 —— 签名与 bundle 内容不一致，下载后不可用"
@@ -381,6 +415,112 @@ else
   no "含公式的 HTML 渲染失败"
 fi
 rm -rf "$MH"
+
+# ---------------------------------------------------------------------------
+sec "App Sandbox 探针 · entitlements / TRUESCALE_WORKDIR / 安全域资源管理"
+
+ENT_FILE="$DIR/gui/mac/TrueScalePDF.entitlements"
+if [[ -f "$ENT_FILE" ]]; then
+  grep -q '<key>com.apple.security.app-sandbox</key>' "$ENT_FILE" \
+    && grep -q '<key>com.apple.security.network.client</key>' "$ENT_FILE" \
+    && grep -q '<key>com.apple.security.files.user-selected.read-write</key>' "$ENT_FILE" \
+    && ok "gui/mac/TrueScalePDF.entitlements 包含最小所需的 3 个沙盒权限" \
+    || no "TrueScalePDF.entitlements 缺少必需的 App Sandbox 权限声明"
+else
+  no "gui/mac/TrueScalePDF.entitlements 不存在"
+fi
+
+SW_TEST_DIR=$(mktemp -d "$WORK/sandbox_workdir.XXXXXX")
+if TRUESCALE_WORKDIR="$SW_TEST_DIR" /bin/zsh -c "source '$DIR/config.sh' && [[ \"\$WORKDIR\" == \"$SW_TEST_DIR\" ]]"; then
+  ok "config.sh 允许通过 TRUESCALE_WORKDIR 环境变量覆盖工作目录"
+else
+  no "config.sh 未正确响应 TRUESCALE_WORKDIR 环境变量"
+fi
+
+VM="$DIR/gui/mac/ConversionViewModel.swift"
+grep -q 'TRUESCALE_WORKDIR' "$VM" \
+  && ok "ConversionViewModel 在 runShell 中传递 TRUESCALE_WORKDIR" \
+  || no "ConversionViewModel 未在 runShell 中传递 TRUESCALE_WORKDIR"
+
+if grep -q 'startAccessingSecurityScopedResource()' "$VM" \
+   && grep -q 'stopAccessingSecurityScopedResource()' "$VM"; then
+  ok "ConversionViewModel 包含成对的 Security-Scoped Resource 访问控制"
+else
+  no "ConversionViewModel 缺少 Security-Scoped Resource 访问控制"
+fi
+
+if [[ -d "$APP_RES/bin" ]]; then
+  if codesign -d --entitlements - "$DIR/gui/TrueScale PDF.app" 2>&1 | grep -q 'com.apple.security.app-sandbox'; then
+    ok "构建的 .app 签有 com.apple.security.app-sandbox=true"
+  else
+    no "构建的 .app 签名缺少 App Sandbox 权限"
+  fi
+fi
+
+# ---------------------------------------------------------------------------
+sec "Xcode/App Store 工程 · 正式 target 与对应源码交付"
+
+PROJECT_YML="$DIR/project.yml"
+if [[ -f "$PROJECT_YML" ]]; then
+  grep -q 'type: application' "$PROJECT_YML" \
+    && grep -q 'CODE_SIGN_ENTITLEMENTS: gui/mac/TrueScalePDF.entitlements' "$PROJECT_YML" \
+    && grep -q 'PRODUCT_BUNDLE_IDENTIFIER: com.figedu.truescalepdf' "$PROJECT_YML" \
+    && grep -q 'PrivacyInfo.xcprivacy' "$PROJECT_YML" \
+    && grep -q 'Package rendering runtime' "$PROJECT_YML" \
+    && ok "project.yml 定义正式沙盒 app target、Bundle ID、隐私清单与运行时打包阶段" \
+    || no "project.yml 缺少 App Store 必需的 target、Bundle ID、隐私清单或打包阶段"
+else
+  no "缺少 XcodeGen project.yml"
+fi
+
+[[ -x "$DIR/gui/package-runtime.sh" ]] \
+  && ok "Pandoc/Typst 运行时打包逻辑已抽成共享可执行脚本" \
+  || no "gui/package-runtime.sh 不存在或不可执行"
+
+if [[ -f "$DIR/gui/mac/TrueScalePDFChild.entitlements" ]] \
+   && grep -q 'com.apple.security.inherit' "$DIR/gui/mac/TrueScalePDFChild.entitlements" \
+   && grep -q -- '--entitlements "$CHILD_ENTITLEMENTS"' "$DIR/gui/package-runtime.sh"; then
+  ok "随包 Pandoc/Typst 以沙盒 inherit entitlements 签名"
+else
+  no "随包可执行文件缺少 App Sandbox inherit 签名"
+fi
+
+[[ ! -e "$DIR/deliver.sh" && ! -e "$DIR/gui/server.py" && ! -e "$DIR/gui/index.html" ]] \
+  && ok "旧 Quaderno 投递入口已从当前产品删除" \
+  || no "当前产品仍包含旧 Quaderno 投递入口"
+
+SOURCE_SCRIPT="$DIR/scripts/package-corresponding-source.sh"
+if [[ -x "$SOURCE_SCRIPT" ]]; then
+  grep -q 'SHA256SUMS' "$SOURCE_SCRIPT" \
+    && grep -q 'INSTALL_RECEIPT.json' "$SOURCE_SCRIPT" \
+    && ok "对应源码脚本记录版本、安装回执与 SHA-256" \
+    || no "对应源码脚本缺少校验和或 Homebrew 安装回执"
+else
+  no "scripts/package-corresponding-source.sh 不存在或不可执行"
+fi
+
+grep -q 'App Store 法律闸门' "$DIR/THIRD-PARTY-LICENSES.md" \
+  && ok "许可文档明确 App Store/GPL 兼容性仍需法律确认" \
+  || no "许可文档未保留 App Store/GPL 法律闸门"
+
+if [[ -f "$DIR/gui/mac/OpenSourceComponentsView.swift" ]] \
+   && grep -q '查看随包源码' "$DIR/gui/mac/OpenSourceComponentsView.swift" \
+   && grep -q 'releases/tag/v' "$DIR/gui/mac/OpenSourceComponentsView.swift"; then
+  ok "应用内提供随包源码、许可证与版本固定 GitHub Release 入口"
+else
+  no "应用内缺少开源组件披露或版本固定源码入口"
+fi
+
+if [[ -d "$DIR/compliance/corresponding-source/1.0.0" ]] \
+   && [[ -f "$DIR/compliance/corresponding-source/1.0.0/SHA256SUMS" ]]; then
+  ok "1.0.0 对应源码与 SHA-256 材料已准备"
+else
+  no "缺少 1.0.0 对应源码或 SHA256SUMS"
+fi
+
+[[ -x "$DIR/scripts/prepare-github-release-assets.sh" ]] \
+  && ok "GitHub Release 资产生成脚本已准备" \
+  || no "缺少可执行的 GitHub Release 资产脚本"
 
 # ---------------------------------------------------------------------------
 print -r -- ""; print -r -- "────────────────────────"

@@ -1,0 +1,93 @@
+# TrueScale PDF Mac App Store workflow.
+# Build/upload and review submission are intentionally separate authorization boundaries.
+
+ENV["LANG"] = "en_US.UTF-8" if ENV["LANG"].to_s.empty?
+ENV["LC_ALL"] = "en_US.UTF-8" if ENV["LC_ALL"].to_s.empty?
+
+default_platform(:mac)
+
+ASC_KEY_ID = "8958JW6XMX"
+ASC_ISSUER_ID = "fa3f5a0e-09d6-4ce0-84a4-c75f610f359e"
+ASC_KEY_PATH = File.expand_path("~/.config/fastlane/AuthKey_8958JW6XMX.p8")
+APP_IDENTIFIER = "com.figedu.truescalepdf"
+TEAM_ID = "KQU7334TAN"
+PROJECT_PATH = "TrueScalePDF.xcodeproj"
+SCHEME = "TrueScalePDF"
+ARCHIVE_PATH = "/tmp/TrueScalePDF.xcarchive"
+EXPORT_PATH = "/tmp/TrueScalePDF-Export"
+
+def setup_api_key
+  UI.user_error!("ASC API key missing: #{ASC_KEY_PATH}") unless File.exist?(ASC_KEY_PATH)
+  app_store_connect_api_key(
+    key_id: ASC_KEY_ID,
+    issuer_id: ASC_ISSUER_ID,
+    key_filepath: ASC_KEY_PATH,
+    duration: 1200,
+    in_house: false
+  )
+end
+
+def project_value(key)
+  project = File.read(File.expand_path("../project.yml", __dir__), encoding: "utf-8")
+  match = project.match(/^\s*#{Regexp.escape(key)}:\s*["']?([^"'\s]+)["']?\s*$/)
+  UI.user_error!("#{key} missing from project.yml") unless match
+  match[1]
+end
+
+def build_store_archive
+  sh("xcodegen generate")
+  build_mac_app(
+    project: PROJECT_PATH,
+    scheme: SCHEME,
+    configuration: "Release",
+    archive_path: ARCHIVE_PATH,
+    export_method: "app-store",
+    export_options: {
+      method: "app-store",
+      destination: "upload",
+      teamID: TEAM_ID,
+      signingStyle: "automatic"
+    },
+    xcargs: "DEVELOPMENT_TEAM=#{TEAM_ID} -allowProvisioningUpdates",
+    clean: true,
+    output_directory: EXPORT_PATH,
+    output_name: "TrueScalePDF.pkg"
+  )
+end
+
+platform :mac do
+  desc "Archive and upload the current build to App Store Connect; never submit for review"
+  lane :build_and_upload_only do
+    setup_api_key
+    UI.message("Version #{project_value('MARKETING_VERSION')} build #{project_value('CURRENT_PROJECT_VERSION')}")
+    build_store_archive
+    UI.success("Build uploaded. Wait for App Store Connect processing and verify processingState=VALID before any review action.")
+  end
+
+  desc "Submit an already uploaded build; requires an explicit second authorization"
+  lane :submit_only do |options|
+    setup_api_key
+    build_number = options[:build].to_s
+    UI.user_error!("Pass build:number") if build_number.empty?
+    UI.user_error!("Set CONFIRM_SUBMIT=YES only after reviewing irreversible fields in App Store Connect") unless ENV["CONFIRM_SUBMIT"] == "YES"
+
+    deliver(
+      app_identifier: APP_IDENTIFIER,
+      app_version: project_value("MARKETING_VERSION"),
+      build_number: build_number,
+      platform: "osx",
+      submit_for_review: true,
+      automatic_release: false,
+      force: true,
+      skip_binary_upload: true,
+      skip_metadata: false,
+      skip_screenshots: false,
+      skip_app_version_update: false,
+      precheck_include_in_app_purchases: false,
+      submission_information: {
+        export_compliance_uses_encryption: false,
+        add_id_info_uses_idfa: false
+      }
+    )
+  end
+end

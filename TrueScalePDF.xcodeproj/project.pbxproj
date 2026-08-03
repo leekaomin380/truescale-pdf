@@ -1,0 +1,422 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		17C4D71068256732B53780A9 /* WeChatExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FAFD2EDC05E8CA360DEC2EB /* WeChatExtractor.swift */; };
+		3094569A21E7384505688BA9 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BC422370B13448AA58F8CF1 /* ContentView.swift */; };
+		30F777E1E1C280DF71C85180 /* wechat_extractor.js in Resources */ = {isa = PBXBuildFile; fileRef = 52061B1DEFD9B8AA14F04F8E /* wechat_extractor.js */; };
+		32DB4054DC33C6519B655EE8 /* ConversionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91C8381329F5A2A6466F5A1E /* ConversionViewModel.swift */; };
+		3C4E029D1ABB605399D356EA /* TrueScalePDFApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54A682C00B8FD366DDFBB68E /* TrueScalePDFApp.swift */; };
+		675FA4AF19857B045A941963 /* AppIcon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 7E6D7519611A023303B2F147 /* AppIcon.icns */; };
+		6E2D4396228912B4657B0B9F /* book-filter.lua in Resources */ = {isa = PBXBuildFile; fileRef = D1977E77E59B5B59BC89FBB2 /* book-filter.lua */; };
+		761BC6A5A6D9ABD27E104416 /* LocalExtraction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D1658FC09FDA93259F714E8 /* LocalExtraction.swift */; };
+		897D3A99C9B46AA9C866990A /* OpenSourceComponentsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C772EFD00D82DBEBF7A0E2 /* OpenSourceComponentsView.swift */; };
+		8E5A41771EB5A1E4577970E9 /* config.sh in Resources */ = {isa = PBXBuildFile; fileRef = 53621F5D454C04CE7F1BD4ED /* config.sh */; };
+		9A9FE2C4F64E1129BAFF3F02 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 982C587B3160789124AFB5EA /* LICENSE */; };
+		9EBABB7F66EAFCD05B58125B /* THIRD-PARTY-LICENSES.md in Resources */ = {isa = PBXBuildFile; fileRef = 93C3BC0A3D89DF21A7405CC2 /* THIRD-PARTY-LICENSES.md */; };
+		A14FAC6072F015C08E3BFCA4 /* book.sh in Resources */ = {isa = PBXBuildFile; fileRef = B7AEA4682172ED7FEF988F35 /* book.sh */; };
+		A28209753B192FC0F140E06E /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 355C24FEEFC4FD7C6BCAAE5E /* PrivacyInfo.xcprivacy */; };
+		A4BBEEA31A6912C409CD2573 /* ImageInliner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 070E21FBCD050AD5B7636145 /* ImageInliner.swift */; };
+		CB8FC77E6A9D509233A604F9 /* deliver.typ in Resources */ = {isa = PBXBuildFile; fileRef = 6D0ED0006900F52696955E1E /* deliver.typ */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		070E21FBCD050AD5B7636145 /* ImageInliner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageInliner.swift; sourceTree = "<group>"; };
+		11C772EFD00D82DBEBF7A0E2 /* OpenSourceComponentsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenSourceComponentsView.swift; sourceTree = "<group>"; };
+		355C24FEEFC4FD7C6BCAAE5E /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		52061B1DEFD9B8AA14F04F8E /* wechat_extractor.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = wechat_extractor.js; sourceTree = "<group>"; };
+		53621F5D454C04CE7F1BD4ED /* config.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = config.sh; sourceTree = "<group>"; };
+		54A682C00B8FD366DDFBB68E /* TrueScalePDFApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrueScalePDFApp.swift; sourceTree = "<group>"; };
+		6D0ED0006900F52696955E1E /* deliver.typ */ = {isa = PBXFileReference; path = deliver.typ; sourceTree = "<group>"; };
+		6EAC8C85F7EE31E3EF897E09 /* TrueScalePDF.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TrueScalePDF.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7BC422370B13448AA58F8CF1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		7E6D7519611A023303B2F147 /* AppIcon.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = AppIcon.icns; sourceTree = "<group>"; };
+		8D1658FC09FDA93259F714E8 /* LocalExtraction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalExtraction.swift; sourceTree = "<group>"; };
+		8FAFD2EDC05E8CA360DEC2EB /* WeChatExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeChatExtractor.swift; sourceTree = "<group>"; };
+		91C8381329F5A2A6466F5A1E /* ConversionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversionViewModel.swift; sourceTree = "<group>"; };
+		93C3BC0A3D89DF21A7405CC2 /* THIRD-PARTY-LICENSES.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = "THIRD-PARTY-LICENSES.md"; sourceTree = "<group>"; };
+		982C587B3160789124AFB5EA /* LICENSE */ = {isa = PBXFileReference; path = LICENSE; sourceTree = "<group>"; };
+		B7AEA4682172ED7FEF988F35 /* book.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = book.sh; sourceTree = "<group>"; };
+		D1977E77E59B5B59BC89FBB2 /* book-filter.lua */ = {isa = PBXFileReference; path = "book-filter.lua"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		08C5655471A8FAD18041A425 /* wechat */ = {
+			isa = PBXGroup;
+			children = (
+				070E21FBCD050AD5B7636145 /* ImageInliner.swift */,
+				8D1658FC09FDA93259F714E8 /* LocalExtraction.swift */,
+				52061B1DEFD9B8AA14F04F8E /* wechat_extractor.js */,
+				8FAFD2EDC05E8CA360DEC2EB /* WeChatExtractor.swift */,
+			);
+			path = wechat;
+			sourceTree = "<group>";
+		};
+		3E1EA0DF1631D47F8F1CFF76 /* gui */ = {
+			isa = PBXGroup;
+			children = (
+				DB52FDE0B146E54BF4943851 /* mac */,
+			);
+			path = gui;
+			sourceTree = "<group>";
+		};
+		896DC06A8F8B87B09A09FD76 = {
+			isa = PBXGroup;
+			children = (
+				D1977E77E59B5B59BC89FBB2 /* book-filter.lua */,
+				B7AEA4682172ED7FEF988F35 /* book.sh */,
+				53621F5D454C04CE7F1BD4ED /* config.sh */,
+				6D0ED0006900F52696955E1E /* deliver.typ */,
+				982C587B3160789124AFB5EA /* LICENSE */,
+				93C3BC0A3D89DF21A7405CC2 /* THIRD-PARTY-LICENSES.md */,
+				3E1EA0DF1631D47F8F1CFF76 /* gui */,
+				E47E96D057787D7994A79660 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		DB52FDE0B146E54BF4943851 /* mac */ = {
+			isa = PBXGroup;
+			children = (
+				7E6D7519611A023303B2F147 /* AppIcon.icns */,
+				7BC422370B13448AA58F8CF1 /* ContentView.swift */,
+				91C8381329F5A2A6466F5A1E /* ConversionViewModel.swift */,
+				11C772EFD00D82DBEBF7A0E2 /* OpenSourceComponentsView.swift */,
+				355C24FEEFC4FD7C6BCAAE5E /* PrivacyInfo.xcprivacy */,
+				54A682C00B8FD366DDFBB68E /* TrueScalePDFApp.swift */,
+				08C5655471A8FAD18041A425 /* wechat */,
+			);
+			path = mac;
+			sourceTree = "<group>";
+		};
+		E47E96D057787D7994A79660 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				6EAC8C85F7EE31E3EF897E09 /* TrueScalePDF.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		00AC8E1615964F9B4EF77EFC /* TrueScalePDF */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9232146D9556CD293DA7BF05 /* Build configuration list for PBXNativeTarget "TrueScalePDF" */;
+			buildPhases = (
+				0FB41ECDABF16CD0EEA0E56C /* Sources */,
+				3D0A6E0901760D6878B654EE /* Resources */,
+				ABC8288530D23593F02A69B8 /* Package rendering runtime */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TrueScalePDF;
+			packageProductDependencies = (
+			);
+			productName = TrueScalePDF;
+			productReference = 6EAC8C85F7EE31E3EF897E09 /* TrueScalePDF.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		996156EF1F896875DBD94122 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					00AC8E1615964F9B4EF77EFC = {
+						DevelopmentTeam = KQU7334TAN;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 1D26D42B3B227C2E49345120 /* Build configuration list for PBXProject "TrueScalePDF" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 896DC06A8F8B87B09A09FD76;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = E47E96D057787D7994A79660 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				00AC8E1615964F9B4EF77EFC /* TrueScalePDF */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		3D0A6E0901760D6878B654EE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				675FA4AF19857B045A941963 /* AppIcon.icns in Resources */,
+				9A9FE2C4F64E1129BAFF3F02 /* LICENSE in Resources */,
+				A28209753B192FC0F140E06E /* PrivacyInfo.xcprivacy in Resources */,
+				9EBABB7F66EAFCD05B58125B /* THIRD-PARTY-LICENSES.md in Resources */,
+				6E2D4396228912B4657B0B9F /* book-filter.lua in Resources */,
+				A14FAC6072F015C08E3BFCA4 /* book.sh in Resources */,
+				8E5A41771EB5A1E4577970E9 /* config.sh in Resources */,
+				CB8FC77E6A9D509233A604F9 /* deliver.typ in Resources */,
+				30F777E1E1C280DF71C85180 /* wechat_extractor.js in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		ABC8288530D23593F02A69B8 /* Package rendering runtime */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Package rendering runtime";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -euo pipefail\nif [[ \"${TRUESCALE_SKIP_RUNTIME_PACKAGING:-NO}\" == \"YES\" ]]; then\n  echo \"Skipping Pandoc/Typst packaging by request\"\n  exit 0\nfi\nidentity=\"${EXPANDED_CODE_SIGN_IDENTITY:--}\"\nif [[ -z \"$identity\" ]]; then identity=\"-\"; fi\n\"$SRCROOT/gui/package-runtime.sh\" \\\n  \"$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH\" \\\n  \"$identity\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0FB41ECDABF16CD0EEA0E56C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3094569A21E7384505688BA9 /* ContentView.swift in Sources */,
+				32DB4054DC33C6519B655EE8 /* ConversionViewModel.swift in Sources */,
+				A4BBEEA31A6912C409CD2573 /* ImageInliner.swift in Sources */,
+				761BC6A5A6D9ABD27E104416 /* LocalExtraction.swift in Sources */,
+				897D3A99C9B46AA9C866990A /* OpenSourceComponentsView.swift in Sources */,
+				3C4E029D1ABB605399D356EA /* TrueScalePDFApp.swift in Sources */,
+				17C4D71068256732B53780A9 /* WeChatExtractor.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		20FA4102661EBE064D8A3FD2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = KQU7334TAN;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		58DB88516C32E051699031B6 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = gui/mac/TrueScalePDF.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_USER_SELECTED_FILES = readwrite;
+				EXECUTABLE_NAME = TrueScalePDF;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = gui/mac/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.figedu.truescalepdf;
+				PRODUCT_NAME = "TrueScale PDF";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		7BD90B665BD3367BEFB349BD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = gui/mac/TrueScalePDF.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_USER_SELECTED_FILES = readwrite;
+				EXECUTABLE_NAME = TrueScalePDF;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = gui/mac/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.figedu.truescalepdf;
+				PRODUCT_NAME = "TrueScale PDF";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		EBE31264113EB75F992595F8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = KQU7334TAN;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1D26D42B3B227C2E49345120 /* Build configuration list for PBXProject "TrueScalePDF" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EBE31264113EB75F992595F8 /* Debug */,
+				20FA4102661EBE064D8A3FD2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		9232146D9556CD293DA7BF05 /* Build configuration list for PBXNativeTarget "TrueScalePDF" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7BD90B665BD3367BEFB349BD /* Debug */,
+				58DB88516C32E051699031B6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 996156EF1F896875DBD94122 /* Project object */;
+}

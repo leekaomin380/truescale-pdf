@@ -2,28 +2,25 @@ import Foundation
 import AppKit
 import PDFKit
 
-struct DeviceInfo: Identifiable, Hashable {
-    let id = UUID()
+struct PagePreset: Identifiable, Hashable, Equatable {
+    let id: String
     let name: String
-    let vendor: String
-    let models: [String]
-    let sizeClass: String
-    let resolutionPx: [Int]
-    let ppi: Double
-    let displayBehavior: String
-    let behaviorVerified: Bool
-    let displayMm: [Double]
-    let sizeVerified: Bool
-    let diagonalIn: Double
+    let dimensionsLabel: String
+    let widthMm: Double
+    let heightMm: Double
+    let secondaryExplanation: String?
 
-    var displaySizeLabel: String {
-        String(format: "%.1f × %.1f mm", displayMm[0], displayMm[1])
+    var pageW: String { "\(String(format: "%.1f", widthMm))mm" }
+    var pageH: String { "\(String(format: "%.1f", heightMm))mm" }
+
+    var displayName: String {
+        "\(name) — \(dimensionsLabel)"
     }
 }
 
 struct ConfigDefaults {
-    var pageW = "157.1mm"
-    var pageH = "209.5mm"
+    var pageW = "210.0mm"
+    var pageH = "297.0mm"
     var margin = "10mm"
     var bodySize = "10pt"
     var leading = "0.85em"
@@ -45,8 +42,45 @@ struct RenderMetrics {
 class ConversionViewModel: ObservableObject {
     let repoURL: URL
 
-    @Published var devices: [DeviceInfo] = []
-    @Published var selectedDeviceIndex = 0
+    static let pagePresets: [PagePreset] = [
+        PagePreset(
+            id: "a4",
+            name: "A4 · 常规打印纸",
+            dimensionsLabel: "210 × 297 mm",
+            widthMm: 210.0,
+            heightMm: 297.0,
+            secondaryExplanation: nil
+        ),
+        PagePreset(
+            id: "a5",
+            name: "A5 · A4 对折大小",
+            dimensionsLabel: "148 × 210 mm",
+            widthMm: 148.0,
+            heightMm: 210.0,
+            secondaryExplanation: nil
+        ),
+        PagePreset(
+            id: "b5",
+            name: "B5 · 比 A4 小一圈",
+            dimensionsLabel: "176 × 250 mm",
+            widthMm: 176.0,
+            heightMm: 250.0,
+            secondaryExplanation: "长宽约为 A4 的 84%，面积约为 A4 的七成。"
+        )
+    ]
+
+    @Published var selectedPresetID: String = "a4" {
+        didSet {
+            let p = selectedPreset
+            config.pageW = p.pageW
+            config.pageH = p.pageH
+        }
+    }
+
+    var selectedPreset: PagePreset {
+        Self.pagePresets.first(where: { $0.id == selectedPresetID }) ?? Self.pagePresets[0]
+    }
+
     @Published var config = ConfigDefaults()
     @Published var cjkFonts: [String] = []
     @Published var latinFonts: [String] = []
@@ -65,7 +99,6 @@ class ConversionViewModel: ObservableObject {
     @Published var totalPages = 0
     @Published var currentPage = 1
     @Published var renderMetrics: RenderMetrics?
-    @Published var hasQuaderno = false
 
     // Text paste mode
     @Published var pasteText = ""
@@ -77,20 +110,19 @@ class ConversionViewModel: ObservableObject {
     // EPUB mode
     @Published var sourceFileURL: URL?
     @Published var sourceFileName = ""
-    @Published var pdfTitle = ""  // derived title for delivery filename
 
     enum StatusKind { case info, ok, err, run }
 
-    /// 行距选项：(内部 em 值, 界面显示的传统倍行距)。
-    /// typst 的 leading 是「行间额外空隙」，人们说的「1.5 倍行距」是「基线距 ÷ 字号」，
-    /// 二者差一个字身高。实测换算为线性关系：倍数 = em + 0.7。
-    /// 界面只显示右侧，em 不外露 —— 显示 0.85 会让人误以为是 0.85 倍，实际是 1.55 倍。
     /// 字号与页边距的可选值。
     /// 【为何放在这里】原先硬编码在 ContentView 的 ForEach 里，而偏好校验需要
     /// 判断"存下来的值是否仍是合法选项"，两处各写一份必然漂移。故收拢为单一来源。
     static let bodySizeChoices = ["9pt", "10pt", "10.5pt", "11pt", "11.5pt", "12pt", "13pt", "14pt"]
     static let marginChoices   = ["8mm", "10mm", "12mm", "14mm", "16mm"]
 
+    /// 行距选项：(内部 em 值, 界面显示的传统倍行距)。
+    /// typst 的 leading 是「行间额外空隙」，人们说的「1.5 倍行距」是「基线距 ÷ 字号」，
+    /// 二者差一个字身高。实测换算为线性关系：倍数 = em + 0.7。
+    /// 界面只显示右侧，em 不外露 —— 显示 0.85 会让人误以为是 0.85 倍，实际是 1.55 倍。
     static let leadingChoices: [(String, String)] = [
         ("0.7em",  "1.4 倍"),
         ("0.8em",  "1.5 倍"),
@@ -101,14 +133,14 @@ class ConversionViewModel: ObservableObject {
 
     /// 上次渲染所依据的输入指纹（内容 + 全部排版参数）。
     ///
-    /// 【为什么需要它】此前发送/另存的唯一条件是「currentPdfURL != nil」，即
+    /// 【为什么需要它】此前另存的唯一条件是「currentPdfURL != nil」，即
     /// 只要曾渲染过任何东西按钮就一直可用，完全不校验当前输入是否对应那个 PDF。
-    /// 后果：贴入新文字后不点预览直接发送，发出去的是【上一篇】—— 真的发错内容。
+    /// 后果：贴入新文字后不点预览直接另存，存出去的是【上一篇】—— 真的存错内容。
     ///
     /// 网页版当年用 DIRTY 标记解决过此问题（index.html 至今仍有），
     /// 原生 SwiftUI 重写时整套机制丢失，属回归。
     ///
-    /// 现改为「发送/另存自行保证正确」：比对指纹，不一致就先重渲再执行 ——
+    /// 现改为「另存自行保证正确」：比对指纹，不一致就先重渲再执行 ——
     /// 这样按钮名义与实际行为一致，用户不必记住「必须先预览」这条前置规则。
     private var renderedFingerprint: String?
 
@@ -148,7 +180,7 @@ class ConversionViewModel: ObservableObject {
     /// 「没有变化」，于是 updatePreview 从不被调用，预览停留在上一次渲染。
     ///
     /// 后果很坏：磁盘上的 PDF 已按新参数重渲（实测确认嵌入字体已换成
-    /// STSongti-SC-Regular），发送到设备的文件是对的，**只有预览在骗人**。
+    /// STSongti-SC-Regular），保存的文件是对的，**只有预览在骗人**。
     /// 用户据此判断「字体没生效」，实际生效了 —— 比不生效更容易误导。
     ///
     /// 故不再依赖任何可能巧合相等的状态，改用单调自增的显式信号。
@@ -183,7 +215,7 @@ class ConversionViewModel: ObservableObject {
     }
 
     /// 确保产物与当前输入一致；若已脱节则重新渲染，完成后执行 next。
-    /// 这是「发送/另存自行保证正确」的入口。
+    /// 这是「另存自行保证正确」的入口。
     func ensureFresh(then next: @escaping () -> Void) {
         guard isStale else { next(); return }
         setStatus("内容有变，正在重新渲染…", .run)
@@ -191,11 +223,6 @@ class ConversionViewModel: ObservableObject {
             guard ok else { return }   // 失败时状态已由渲染流程写明
             next()
         }
-    }
-
-    var selectedDevice: DeviceInfo? {
-        guard selectedDeviceIndex < devices.count else { return nil }
-        return devices[selectedDeviceIndex]
     }
 
     init() {
@@ -213,9 +240,6 @@ class ConversionViewModel: ObservableObject {
 
         // File I/O only — fast, safe on main thread
         loadConfig()
-        loadDevices()
-        hasQuaderno = FileManager.default.fileExists(
-            atPath: "/Applications/QUADERNO PC App.app")
 
         // Populate font lists with config defaults so pickers are immediately usable
         if !config.fonts.isEmpty { latinFonts = [config.fonts[0]] }
@@ -234,18 +258,19 @@ class ConversionViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Config & Devices
+    // MARK: - Config
 
     private func loadConfig() {
         let configPath = repoURL.appendingPathComponent("config.sh")
-        guard let text = try? String(contentsOf: configPath, encoding: .utf8) else { return }
+        guard let text = try? String(contentsOf: configPath, encoding: .utf8) else {
+            applySavedPreferences()
+            return
+        }
         func grab(_ key: String, _ def: String = "") -> String {
             let pattern = #"^"# + key + #"="([^"]*)""#
             guard let range = text.range(of: pattern, options: .regularExpression) else { return def }
             return String(text[range]).replacingOccurrences(of: "\(key)=\"", with: "").replacingOccurrences(of: "\"", with: "")
         }
-        config.pageW = grab("PAGE_W", "157.1mm")
-        config.pageH = grab("PAGE_H", "209.5mm")
         config.margin = grab("PAGE_MARGIN", "10mm")
         config.bodySize = grab("BODY_SIZE", "10pt")
         config.leading = grab("LEADING", "0.85em")
@@ -254,13 +279,16 @@ class ConversionViewModel: ObservableObject {
         let fontPattern = #"FONTS=\(([^)]*)\)"#
         if let range = text.range(of: fontPattern, options: .regularExpression) {
             let fontStr = String(text[range])
-            // 按引号分割会产生字体之间的分隔片段（如 " "）——必须 trim 后再判空，
-            // 否则那个空格会被当成一个字体名，导致 Picker 选中一个不存在的项而显示空白。
             config.fonts = fontStr.components(separatedBy: "\"")
                 .map { $0.trimmingCharacters(in: .whitespaces) }
+                // 按引号分割会产生字体之间的分隔片段（如 " "）——必须 trim 后再判空，
+                // 否则那个空格会被当成一个字体名，导致 Picker 选中一个不存在的项而显示空白。
                 .filter { !$0.isEmpty && $0 != "FONTS=(" && $0 != ")" }
         }
 
+        // config.sh 是【出厂默认】；用户调过的值优先。
+        // 之前没有任何持久化，字体字号每次启动都被打回默认 —— 而这些参数
+        // 恰恰是一次性调好、长期不变的东西，每次重设是纯粹的摩擦。
         bodySize = config.bodySize
         margin = config.margin
         leading = config.leading
@@ -270,9 +298,10 @@ class ConversionViewModel: ObservableObject {
             selectedCjkFont = config.fonts[1]
         }
 
-        // config.sh 是【出厂默认】；用户调过的值优先。
-        // 之前没有任何持久化，字体字号每次启动都被打回默认 —— 而这些参数
-        // 恰恰是一次性调好、长期不变的东西，每次重设是纯粹的摩擦。
+        let p = selectedPreset
+        config.pageW = p.pageW
+        config.pageH = p.pageH
+
         applySavedPreferences()
     }
 
@@ -280,20 +309,20 @@ class ConversionViewModel: ObservableObject {
 
     /// UserDefaults 键。加前缀避免与系统或将来的键冲突。
     private enum PrefKey {
-        static let cjkFont   = "pref.cjkFont"
-        static let latinFont = "pref.latinFont"
-        static let bodySize  = "pref.bodySize"
-        static let margin    = "pref.margin"
-        static let leading   = "pref.leading"
-        static let deviceIdx = "pref.deviceIndex"
+        static let cjkFont      = "pref.cjkFont"
+        static let latinFont    = "pref.latinFont"
+        static let bodySize     = "pref.bodySize"
+        static let margin       = "pref.margin"
+        static let leading      = "pref.leading"
+        static let pagePresetID = "pref.pagePresetID"
     }
 
     /// 用已保存的偏好覆盖出厂默认值。
     ///
-    /// 【为何不直接信任存下来的值】字体可能被卸载、devices.json 可能增删条目、
-    /// 选项列表可能变化。存的值若已失效就必须回退到默认，否则 Picker 会选中一个
-    /// 不存在的项而显示空白 —— 这个坑本项目踩过一次（FONTS 解析出空字符串，
-    /// 导致中文字体下拉整个空掉）。故所有值取用前都要校验。
+    /// 【为何不直接信任存下来的值】字体可能被卸载、pagePresets 选项列表可能变化。
+    /// 存的值若已失效就必须回退到默认，否则 Picker 会选中一个不存在的项而显示空白 ——
+    /// 这个坑本项目踩过一次（FONTS 解析出空字符串，导致中文字体下拉整个空掉）。
+    /// 故所有值取用前都要校验。
     private func applySavedPreferences() {
         let d = UserDefaults.standard
         // 字号/边距/行距：只接受仍在选项表里的值
@@ -307,9 +336,17 @@ class ConversionViewModel: ObservableObject {
         // 由 reconcileSavedFonts() 在列表就绪后再校验。
         if let v = d.string(forKey: PrefKey.cjkFont)   { selectedCjkFont = v }
         if let v = d.string(forKey: PrefKey.latinFont) { selectedLatinFont = v }
-        // 设备索引：devices 已在 loadDevices 中同步载入，可立即校验
-        let idx = d.integer(forKey: PrefKey.deviceIdx)
-        if idx > 0 && idx < devices.count { selectedDeviceIndex = idx }
+
+        // 页面尺寸预设：基于稳定 PagePreset.id 校验与持久化
+        if let savedID = d.string(forKey: PrefKey.pagePresetID),
+           Self.pagePresets.contains(where: { $0.id == savedID }) {
+            selectedPresetID = savedID
+        } else {
+            selectedPresetID = "a4"
+        }
+        let p = selectedPreset
+        config.pageW = p.pageW
+        config.pageH = p.pageH
     }
 
     /// 字体列表异步就绪后，核对已保存的字体是否真的可用；不可用则回退到出厂默认。
@@ -325,47 +362,12 @@ class ConversionViewModel: ObservableObject {
     /// 保存当前偏好。由 View 在参数变化时调用。
     func savePreferences() {
         let d = UserDefaults.standard
-        d.set(selectedCjkFont,   forKey: PrefKey.cjkFont)
-        d.set(selectedLatinFont, forKey: PrefKey.latinFont)
-        d.set(bodySize,          forKey: PrefKey.bodySize)
-        d.set(margin,            forKey: PrefKey.margin)
-        d.set(leading,           forKey: PrefKey.leading)
-        d.set(selectedDeviceIndex, forKey: PrefKey.deviceIdx)
-    }
-
-    private func loadDevices() {
-        let devicesPath = repoURL.appendingPathComponent("devices.json")
-        guard let data = try? Data(contentsOf: devicesPath),
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let sizeClasses = json["size_classes"] as? [[String: Any]],
-              let deviceList = json["devices"] as? [[String: Any]] else { return }
-
-        var classMap: [String: [String: Any]] = [:]
-        for sc in sizeClasses {
-            if let id = sc["id"] as? String { classMap[id] = sc }
-        }
-
-        for d in deviceList {
-            guard let sizeClass = d["size_class"] as? String,
-                  let sc = classMap[sizeClass] else { continue }
-            let displayMm = (sc["display_mm"] as? [Double]) ?? [0, 0]
-            let diag = (sc["diagonal_in"] as? Double) ?? 0
-            let verified = (sc["verified"] as? Bool) ?? false
-
-            devices.append(DeviceInfo(
-                name: d["name"] as? String ?? "",
-                vendor: d["vendor"] as? String ?? "",
-                models: d["models"] as? [String] ?? [],
-                sizeClass: sizeClass,
-                resolutionPx: d["resolution_px"] as? [Int] ?? [0, 0],
-                ppi: (d["ppi"] as? Double) ?? 0,
-                displayBehavior: d["display_behavior"] as? String ?? "unknown",
-                behaviorVerified: (d["behavior_verified"] as? Bool) ?? false,
-                displayMm: displayMm,
-                sizeVerified: verified,
-                diagonalIn: diag
-            ))
-        }
+        d.set(selectedCjkFont,     forKey: PrefKey.cjkFont)
+        d.set(selectedLatinFont,   forKey: PrefKey.latinFont)
+        d.set(bodySize,            forKey: PrefKey.bodySize)
+        d.set(margin,              forKey: PrefKey.margin)
+        d.set(leading,             forKey: PrefKey.leading)
+        d.set(selectedPresetID,    forKey: PrefKey.pagePresetID)
     }
 
     private func listFontsAsync() -> (cjk: [String], latin: [String]) {
@@ -397,7 +399,7 @@ class ConversionViewModel: ObservableObject {
     // MARK: - Metrics
 
     func computeMetrics(pages: Int? = nil, pageSizes: [String]? = nil) -> RenderMetrics {
-        let pageWmm = Double(config.pageW.replacingOccurrences(of: "mm", with: "")) ?? 157.1
+        let pageWmm = Double(config.pageW.replacingOccurrences(of: "mm", with: "")) ?? 210.0
         let marginMm = Double(margin.replacingOccurrences(of: "mm", with: "")) ?? 10
         let sizePt = Double(bodySize.replacingOccurrences(of: "pt", with: "")) ?? 10
         let measure = pageWmm - 2 * marginMm
@@ -430,6 +432,13 @@ class ConversionViewModel: ObservableObject {
         isConverting = true
 
         DispatchQueue.global(qos: .userInitiated).async { [self] in
+            let accessing = src.startAccessingSecurityScopedResource()
+            defer {
+                if accessing {
+                    src.stopAccessingSecurityScopedResource()
+                }
+            }
+
             let workDir = FileManager.default.temporaryDirectory.appendingPathComponent("p2q_app")
             try? FileManager.default.createDirectory(at: workDir, withIntermediateDirectories: true)
             let outPdf = workDir.appendingPathComponent(src.deletingPathExtension().lastPathComponent + ".pdf")
@@ -509,6 +518,7 @@ class ConversionViewModel: ObservableObject {
                 DispatchQueue.main.async {
                     self.isConverting = false
                     self.setStatus("抓取失败：\(e.localizedDescription)", .err)
+                    self.finishPendingRender(success: false)
                 }
             case .success(let html):
                 DispatchQueue.main.async {
@@ -536,6 +546,7 @@ class ConversionViewModel: ObservableObject {
                                     msg = "抽取失败：\(outcome.reason)"
                                 }
                                 self.setStatus(msg, .err)
+                                self.finishPendingRender(success: false)
                             }
                             return
                         }
@@ -582,8 +593,8 @@ class ConversionViewModel: ObservableObject {
                 return
             }
             guard let data = data else {
-                completion(.failure(NSError(domain: "Quaderno", code: 3,
-                    userInfo: [NSLocalizedDescriptionKey: "未从微信获取到数据"])))
+                completion(.failure(NSError(domain: "TrueScalePDF", code: 3,
+                    userInfo: [NSLocalizedDescriptionKey: "未获取到网页数据"])))
                 return
             }
             let htmlString = String(data: data, encoding: .utf8) ?? String(data: data, encoding: .ascii) ?? ""
@@ -656,54 +667,7 @@ class ConversionViewModel: ObservableObject {
         return image
     }
 
-    // MARK: - Deliver
-
-    func deliverToDevice() {
-        guard let pdfURL = currentPdfURL else {
-            setStatus("无可发送的内容", .err)
-            return
-        }
-        setStatus("正在发送到 Quaderno…", .run)
-
-        let app = "/Applications/QUADERNO PC App.app"
-        guard FileManager.default.fileExists(atPath: app) else {
-            setStatus("未找到 QUADERNO 客户端", .err)
-            return
-        }
-
-        // Deliver a copy to protect the original (invariant I2)
-        // Use title as filename — QUADERNO client displays file name in its list
-        let title = pasteTitle.trimmingCharacters(in: .whitespacesAndNewlines)
-        let copyName: String
-        if !title.isEmpty {
-            let safe = title.replacingOccurrences(of: "[/\\\\:*?\"<>|]", with: "_", options: .regularExpression)
-            copyName = String(safe.prefix(60)) + ".pdf"
-        } else {
-            copyName = pdfURL.lastPathComponent
-        }
-        let copyURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("p2q_deliver")
-            .appendingPathComponent(copyName)
-        try? FileManager.default.createDirectory(
-            at: copyURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-        do {
-            if FileManager.default.fileExists(atPath: copyURL.path) {
-                try FileManager.default.removeItem(at: copyURL)
-            }
-            try FileManager.default.copyItem(at: pdfURL, to: copyURL)
-        } catch {
-            setStatus("创建投递副本失败：\(error.localizedDescription)", .err)
-            return
-        }
-
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-        process.arguments = ["-gj", "-na", app, "--args", "--print", copyURL.path]
-        try? process.run()
-        process.waitUntilExit()
-
-        setStatus("已交客户端，稍后同步到设备", .ok)
-    }
+    // MARK: - Save PDF
 
     func savePDF() {
         guard let pdfURL = currentPdfURL else {
@@ -791,6 +755,7 @@ class ConversionViewModel: ObservableObject {
         env["PATH"] = "/opt/homebrew/bin:/usr/local/bin:" + (env["PATH"] ?? "")
         env["LANG"] = "en_US.UTF-8"
         env["LC_ALL"] = "en_US.UTF-8"
+        env["TRUESCALE_WORKDIR"] = FileManager.default.temporaryDirectory.path
         proc.environment = env
 
         let outPipe = Pipe()

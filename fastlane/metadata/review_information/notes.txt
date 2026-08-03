@@ -1,0 +1,11 @@
+TrueScale PDF does not require an account or external hardware.
+
+To review:
+1. Choose "粘贴文本".
+2. Paste sample text.
+3. Select A4, A5, or B5 and click preview.
+4. Save the generated PDF with "另存 PDF".
+
+The "网页链接" feature makes network requests only after the reviewer enters an HTTPS URL and starts conversion. Local documents remain on the Mac. The app has no analytics, advertising, sign-in, purchases, or reader-device delivery integration.
+
+Pandoc, Typst, and GNU MP licenses and corresponding source materials are included in the app under Resources/licenses and are also published with the matching GitHub Release.

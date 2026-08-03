@@ -1,0 +1,83 @@
+name: TrueScalePDF
+
+options:
+  minimumXcodeGenVersion: 2.40.0
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    DEVELOPMENT_TEAM: KQU7334TAN
+    CODE_SIGN_STYLE: Automatic
+    SWIFT_VERSION: 5.0
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: 1
+
+targets:
+  TrueScalePDF:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: gui/mac
+        includes:
+          - "*.swift"
+          - "wechat/*.swift"
+      - path: gui/mac/AppIcon.icns
+        buildPhase: resources
+      - path: gui/mac/wechat/wechat_extractor.js
+        buildPhase: resources
+      - path: config.sh
+        buildPhase: resources
+      - path: book.sh
+        buildPhase: resources
+      - path: deliver.typ
+        buildPhase: resources
+      - path: book-filter.lua
+        buildPhase: resources
+      - path: THIRD-PARTY-LICENSES.md
+        buildPhase: resources
+      - path: LICENSE
+        buildPhase: resources
+      - path: gui/mac/PrivacyInfo.xcprivacy
+        buildPhase: resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.figedu.truescalepdf
+        PRODUCT_NAME: TrueScale PDF
+        EXECUTABLE_NAME: TrueScalePDF
+        INFOPLIST_FILE: gui/mac/Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGN_ENTITLEMENTS: gui/mac/TrueScalePDF.entitlements
+        ENABLE_APP_SANDBOX: YES
+        ENABLE_HARDENED_RUNTIME: YES
+        ENABLE_USER_SELECTED_FILES: readwrite
+        ENABLE_OUTGOING_NETWORK_CONNECTIONS: YES
+        ARCHS: arm64
+        ONLY_ACTIVE_ARCH: YES
+    postBuildScripts:
+      - name: Package rendering runtime
+        basedOnDependencyAnalysis: false
+        script: |
+          set -euo pipefail
+          if [[ "${TRUESCALE_SKIP_RUNTIME_PACKAGING:-NO}" == "YES" ]]; then
+            echo "Skipping Pandoc/Typst packaging by request"
+            exit 0
+          fi
+          identity="${EXPANDED_CODE_SIGN_IDENTITY:--}"
+          if [[ -z "$identity" ]]; then identity="-"; fi
+          "$SRCROOT/gui/package-runtime.sh" \
+            "$TARGET_BUILD_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH" \
+            "$identity"
+
+schemes:
+  TrueScalePDF:
+    build:
+      targets:
+        TrueScalePDF: all
+    run:
+      config: Debug
+    archive:
+      config: Release

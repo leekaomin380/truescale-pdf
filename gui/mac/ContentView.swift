@@ -30,7 +30,7 @@ struct ContentView: View {
     }
 
     /// 当前模式下是否已有可渲染的输入。
-    /// 发送/另存不再要求「必须先预览」—— 它们会在内容脱节时自行重渲（见 vm.ensureFresh），
+    /// 另存不再要求「必须先预览」—— 它会在内容脱节时自行重渲（见 vm.ensureFresh），
     /// 故按钮条件与「预览」一致：有输入即可点。
     private var hasInput: Bool {
         switch inputMode {
@@ -40,11 +40,11 @@ struct ContentView: View {
         }
     }
 
-    /// 页框尺寸：按目标设备显示区的真实宽高比，等比放进可用空间。
+    /// 页框尺寸：按目标页面的真实宽高比，等比放进可用空间。
     /// 有无预览都用同一个框 —— 未转换时用户也能看到内容将落在多大的版面里。
     private func pageBox(in available: CGSize) -> CGSize {
-        let wmm = Double(vm.config.pageW.replacingOccurrences(of: "mm", with: "")) ?? 157.1
-        let hmm = Double(vm.config.pageH.replacingOccurrences(of: "mm", with: "")) ?? 209.5
+        let wmm = Double(vm.config.pageW.replacingOccurrences(of: "mm", with: "")) ?? 210.0
+        let hmm = Double(vm.config.pageH.replacingOccurrences(of: "mm", with: "")) ?? 297.0
         guard wmm > 0, hmm > 0 else { return available }
         let maxW = max(available.width - 48, 40)
         let maxH = max(available.height - 32, 40)
@@ -65,12 +65,12 @@ struct ContentView: View {
         // 【为何逐项监听而不在退出时统一保存】app 是常驻型（关窗不退出），
         // 「退出时保存」在异常退出或强制关闭时会丢；而这些值改动频率极低，
         // 每次写一个 UserDefaults 字典的开销可以忽略。
+        .onChange(of: vm.selectedPresetID)   { _, _ in vm.savePreferences() }
         .onChange(of: vm.selectedCjkFont)     { _, _ in vm.savePreferences() }
         .onChange(of: vm.selectedLatinFont)   { _, _ in vm.savePreferences() }
         .onChange(of: vm.bodySize)            { _, _ in vm.savePreferences() }
         .onChange(of: vm.margin)              { _, _ in vm.savePreferences() }
         .onChange(of: vm.leading)             { _, _ in vm.savePreferences() }
-        .onChange(of: vm.selectedDeviceIndex) { _, _ in vm.savePreferences() }
         .onDrop(of: [.fileURL], isTargeted: $isDragOver) { providers in
             handleDrop(providers)
         }
@@ -114,7 +114,6 @@ struct ContentView: View {
 
                 DisclosureGroup("进阶设置", isExpanded: $isAdvancedExpanded) {
                     VStack(alignment: .leading, spacing: 12) {
-                        deviceSection
                         fontSection
                         layoutAdvancedSection
                     }
@@ -232,31 +231,6 @@ struct ContentView: View {
         }
     }
 
-    private var deviceSection: some View {
-        Group {
-            Text("目标设备")
-                .font(.caption)
-                .foregroundColor(.secondary)
-            Picker("", selection: $vm.selectedDeviceIndex) {
-                ForEach(0..<vm.devices.count, id: \.self) { i in
-                    Text(vm.devices[i].name).tag(i)
-                }
-            }
-            .pickerStyle(.menu)
-
-            if let dev = vm.selectedDevice {
-                HStack(spacing: 6) {
-                    Text(dev.sizeVerified ? "✓ 已实测" : "⚠ 未实测")
-                        .font(.caption2)
-                        .foregroundColor(dev.sizeVerified ? .green : .orange)
-                    Text("显示区 \(dev.displaySizeLabel)")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-            }
-        }
-    }
-
     private var fontSection: some View {
         Group {
             Text("中文字体")
@@ -283,6 +257,22 @@ struct ContentView: View {
 
     private var layoutBasicSection: some View {
         Group {
+            Text("页面尺寸")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            Picker("", selection: $vm.selectedPresetID) {
+                ForEach(ConversionViewModel.pagePresets) { preset in
+                    Text(preset.displayName).tag(preset.id)
+                }
+            }
+            .pickerStyle(.menu)
+
+            if let explanation = vm.selectedPreset.secondaryExplanation {
+                Text(explanation)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+
             Text("正文字号")
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -332,7 +322,7 @@ struct ContentView: View {
                     }
                     .pickerStyle(.menu)
                 }
-                
+
                 VStack(alignment: .leading) {
                     Text("页脚时间")
                         .font(.caption)
@@ -367,15 +357,6 @@ struct ContentView: View {
                       || (inputMode == .text && vm.pasteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                       || (inputMode == .wechat && vm.wechatURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty))
             .keyboardShortcut(.return, modifiers: .command)
-
-            if vm.hasQuaderno {
-                Button(action: { vm.ensureFresh { vm.deliverToDevice() } }) {
-                    Text("发送到 Quaderno")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.bordered)
-                .disabled(vm.isConverting || !hasInput)
-            }
 
             Button(action: { vm.ensureFresh { vm.savePDF() } }) {
                 Text("另存 PDF…")
@@ -460,7 +441,7 @@ struct ContentView: View {
 
             Divider()
 
-            // Preview —— 页框始终按目标设备的真实宽高比呈现，
+            // Preview —— 页框始终按目标页面的真实宽高比呈现，
             // 未转换时同样显示该幅面，让用户先看到「内容会落在多大的版面里」。
             GeometryReader { geo in
                 let box = pageBox(in: geo.size)
@@ -493,10 +474,8 @@ struct ContentView: View {
 
             // Bottom info bar
             HStack(spacing: 16) {
-                if let dev = vm.selectedDevice {
-                    Text("页面 \(vm.config.pageW) × \(vm.config.pageH)")
-                        .font(.caption2).foregroundColor(.secondary)
-                }
+                Text("页面 \(vm.selectedPreset.name) (\(vm.config.pageW) × \(vm.config.pageH))")
+                    .font(.caption2).foregroundColor(.secondary)
                 if let m = vm.renderMetrics {
                     Text("版心 \(String(format: "%.1f", m.measureMm))mm")
                         .font(.caption2).foregroundColor(.secondary)

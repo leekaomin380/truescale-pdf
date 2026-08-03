@@ -1,19 +1,12 @@
 #!/bin/zsh
 # =============================================================================
-# book.sh · 电子书 → Quaderno 优化 PDF
+# book.sh · 流式文档 → 精确尺寸 PDF
 # -----------------------------------------------------------------------------
 # 用法：
 #   ./book.sh 某本书.epub              渲染为 PDF，放在原文件旁
-#   ./book.sh 某本书.epub --deliver    渲染后直接投递到设备
 #   ./book.sh 某本书.epub -o out.pdf   指定输出路径
 #
-# 为什么单独一个脚本，而不并入 deliver.sh：
-#   deliver.sh 面向剪贴板短文（几百字 / 亚秒级渲染 / 投完即弃）。
-#   一本书是另一种量级：几百页、渲染以十秒计、需要分章/目录/元数据、
-#   且产物应当保留而非删除。两者的参数与生命周期都不同，混在一起会互相拖累。
-#
-# 过去 epub 转 PDF「效果不好」的根因，多半是页面尺寸错配导致设备二次缩放，
-# 叠加按纸张习惯留的大边距。本脚本按设备显示区物理尺寸出页，1:1 零缩放。
+# 本脚本以毫米为单位生成固定页面，避免流式文档转 PDF 时发生隐式缩放。
 # =============================================================================
 
 set -uo pipefail
@@ -36,10 +29,9 @@ TEMPLATE="$SCRIPT_DIR/deliver.typ"
 die() { print -r -- "❌ $1" >&2; exit "${2:-1}"; }
 
 # ---- 参数解析 ---------------------------------------------------------------
-SRC=""; OUT=""; DELIVER=0; PLAIN=0; PRINT_TIME=1
+SRC=""; OUT=""; PLAIN=0; PRINT_TIME=1
 while (( $# )); do
   case "$1" in
-    --deliver|-d) DELIVER=1 ;;
     --plain)      PLAIN=1 ;;
     --time)       PRINT_TIME=1 ;;
     --no-time)    PRINT_TIME=0 ;;
@@ -51,7 +43,7 @@ while (( $# )); do
     --leading)    shift; LEADING="${1:-0.85em}" ;;
     -o)           shift; OUT="${1:-}" ;;
     -h|--help)
-      print -r -- "用法: book.sh <书文件> [-o 输出.pdf] [--deliver]"
+      print -r -- "用法: book.sh <书文件> [-o 输出.pdf]"
       print -r -- "支持: epub / fb2 / html / md（mobi/azw 需安装 calibre）"
       print -r -- ""
       print -r -- "选项:"
@@ -78,7 +70,7 @@ while (( $# )); do
   shift
 done
 
-[[ -n "$SRC" ]]  || die "未指定输入文件。用法: book.sh <书文件> [--deliver]"
+[[ -n "$SRC" ]]  || die "未指定输入文件。用法: book.sh <书文件>"
 [[ -f "$SRC" ]]  || die "文件不存在: $SRC"
 command -v pandoc >/dev/null || die "未找到 pandoc → brew install pandoc" 10
 command -v typst  >/dev/null || die "未找到 typst → brew install typst"  10
@@ -184,23 +176,4 @@ if (( PLAIN )); then
   print -r -- "   plain 模式：无目录页、无强制分章"
 else
   print -r -- "   已生成 PDF 大纲（书签）与正文目录页"
-fi
-
-# ---- 可选投递 ---------------------------------------------------------------
-if (( DELIVER )); then
-  [[ -d "$QUADERNO_APP" ]] || die "未找到 QUADERNO 客户端"
-  # 客户端会在上传后删除源文件，故投递副本，保留原始产物。
-  # 副本名必须与 OUT 不同 —— 若 OUT 本身就落在 WORKDIR 内（如 -o /tmp/x.pdf），
-  # 同名会导致 cp 自拷贝失败，客户端随后把原始产物吃掉，等于静默数据丢失。
-  COPY="$WORK/deliver_${OUT:t}"
-  cp "$OUT" "$COPY" || die "无法创建投递副本"
-  print -r -- "→ 投递到设备…"
-  open -gj -na "$QUADERNO_APP" --args --print "$COPY"
-  for i in $(seq 1 300); do [[ -f "$COPY" ]] || break; sleep 0.2; done
-  if [[ -f "$COPY" ]]; then
-    print -r -- "⚠️  60 秒内未确认送达 —— 书较大时上传耗时更长，请检查客户端"
-    rm -f "$COPY"
-  else
-    print -r -- "✅ 已投递（原始 PDF 保留在 $OUT）"
-  fi
 fi

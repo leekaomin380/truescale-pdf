@@ -1,13 +1,24 @@
 import SwiftUI
 
 @main
-struct QuadernoApp: App {
+struct TrueScalePDFApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @State private var showsOpenSourceComponents = false
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup("TrueScale PDF") {
             ContentView()
                 .frame(minWidth: 900, minHeight: 600)
+                .sheet(isPresented: $showsOpenSourceComponents) {
+                    OpenSourceComponentsView()
+                }
+        }
+        .commands {
+            CommandGroup(after: .appInfo) {
+                Button("开源组件…") {
+                    showsOpenSourceComponents = true
+                }
+            }
         }
     }
 }

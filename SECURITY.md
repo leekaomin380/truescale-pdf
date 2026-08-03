@@ -2,11 +2,10 @@
 
 ## What this software touches
 
-`deliver.sh`, `book.sh`, and the GUI apps read your system clipboard and/or a file
-you point them at, shell out to `pandoc`/`typst` (and `open` on macOS to hand a PDF
-to the QUADERNO client), and write temporary files under `/tmp`. There is no
-telemetry, no credential handling, and no third-party dependency beyond what
-Homebrew installs (`pandoc`, `typst`, optionally `poppler`/`calibre`).
+`book.sh` and the native app read only text entered by the user or files selected
+through the macOS file picker, run the bundled `pandoc` and `typst` executables,
+and write rendering intermediates to the app's temporary directory. There is no
+telemetry, advertising, account, credential handling, or reader-client delivery.
 
 **The one network path** is the WeChat article feature: when *you* paste an
 `mp.weixin.qq.com` link, the app fetches that page and the images it references.
@@ -16,12 +15,9 @@ network request blocked via `WKContentRuleList` — so the page's own scripts an
 trackers cannot fire, and Tencent's CDN is only contacted by our own deliberate
 image fetches.
 
-This is by design: the project's own stated principle is that **readability is the
-trust mechanism**. There's deliberately no one-line `curl | sh` installer — you're
-expected to be able to read `deliver.sh` (under 250 lines, plainly commented at the
-non-obvious parts) before running it. If you can't finish that read in a few
-minutes and feel confident about what it does, that's a documentation bug — please
-report it.
+The app is sandboxed. Outgoing network access exists solely for user-initiated
+HTTPS article conversion. Source and reproducible packaging materials for bundled
+components are published with each matching release.
 
 ## Reporting a vulnerability
 
