@@ -43,7 +43,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.figedu.truescalepdf
-        PRODUCT_NAME: TrueScale PDF
+        PRODUCT_NAME: Epub 转 PDF
         EXECUTABLE_NAME: TrueScalePDF
         INFOPLIST_FILE: gui/mac/Info.plist
         GENERATE_INFOPLIST_FILE: NO

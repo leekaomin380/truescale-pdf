@@ -17,6 +17,8 @@ GMP_VERSION=$(basename "$(readlink -f "$GMP_PREFIX")")
 PANDOC_PREFIX=$(brew --prefix pandoc)
 
 mkdir -p "$OUT_DIR"
+# Remove the legacy bundle-marker filename from previously generated packages.
+rm -f "$OUT_DIR/Info.plist"
 
 PANDOC_ARCHIVE="$OUT_DIR/pandoc-${PANDOC_VERSION}-source.tar.gz"
 GMP_ARCHIVE="$OUT_DIR/gmp-${GMP_VERSION}-source.tar.xz"
@@ -49,7 +51,10 @@ perl -pi -e 's#/Users/[^/]+/#/Users/BUILD_USER/#g' \
 cp "$REPO/gui/package-runtime.sh" "$OUT_DIR/package-runtime.sh"
 cp "$REPO/gui/build-app.sh" "$OUT_DIR/build-app.sh"
 cp "$REPO/project.yml" "$OUT_DIR/project.yml"
-cp "$REPO/gui/mac/Info.plist" "$OUT_DIR/Info.plist"
+# App Store validation treats any nested file named exactly Info.plist as a
+# bundle marker. Preserve the source byte-for-byte under a non-bundle filename
+# so it remains available without being misclassified as an embedded app.
+cp "$REPO/gui/mac/Info.plist" "$OUT_DIR/Info-plist-source.xml"
 cp "$REPO/gui/mac/PrivacyInfo.xcprivacy" "$OUT_DIR/PrivacyInfo.xcprivacy"
 cp "$REPO/gui/mac/TrueScalePDF.entitlements" "$OUT_DIR/TrueScalePDF.entitlements"
 cp "$REPO/gui/mac/TrueScalePDFChild.entitlements" "$OUT_DIR/TrueScalePDFChild.entitlements"
@@ -65,7 +70,7 @@ cp "$REPO/THIRD-PARTY-LICENSES.md" "$OUT_DIR/THIRD-PARTY-LICENSES.md"
     package-runtime.sh \
     build-app.sh \
     project.yml \
-    Info.plist \
+    Info-plist-source.xml \
     PrivacyInfo.xcprivacy \
     TrueScalePDF.entitlements \
     TrueScalePDFChild.entitlements \
@@ -73,7 +78,7 @@ cp "$REPO/THIRD-PARTY-LICENSES.md" "$OUT_DIR/THIRD-PARTY-LICENSES.md"
 )
 
 cat > "$OUT_DIR/MANIFEST.txt" <<EOF
-TrueScale PDF corresponding source package
+Epub 转 PDF corresponding source package
 Generated (UTC): $(date -u '+%Y-%m-%dT%H:%M:%SZ')
 Architecture: $(uname -m)
 Pandoc: ${PANDOC_VERSION}

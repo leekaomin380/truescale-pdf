@@ -1,14 +1,8 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-enum InputMode: String, CaseIterable {
-    case epub = "电子书转换"
-    case text = "粘贴文本"
-}
-
 struct ContentView: View {
     @StateObject private var vm = ConversionViewModel()
-    @State private var inputMode: InputMode = .epub
     @State private var isDragOver = false
     @State private var previewImage: NSImage?
     @State private var showFilePicker = false
@@ -28,14 +22,11 @@ struct ContentView: View {
         return name
     }
 
-    /// 当前模式下是否已有可渲染的输入。
+    /// 是否已有可渲染的 EPUB 输入。
     /// 另存不再要求「必须先预览」—— 它会在内容脱节时自行重渲（见 vm.ensureFresh），
     /// 故按钮条件与「预览」一致：有输入即可点。
     private var hasInput: Bool {
-        switch inputMode {
-        case .epub:   return vm.sourceFileURL != nil
-        case .text:   return !vm.pasteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        }
+        vm.sourceFileURL != nil
     }
 
     /// 页框尺寸：按目标页面的真实宽高比，等比放进可用空间。
@@ -79,29 +70,10 @@ struct ContentView: View {
     private var sidebar: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                // Tab bar
-                Picker("", selection: $inputMode) {
-                    ForEach(InputMode.allCases, id: \.self) { mode in
-                        Text(mode.rawValue).tag(mode)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .onChange(of: inputMode) { _, newMode in
-                    vm.activeKind = switch newMode {
-                        case .epub: .epub
-                        case .text: .text
-                    }
-                    vm.sourceFileURL = nil
-                    vm.sourceFileName = ""
-                    vm.pasteText = ""
-                    vm.pasteTitle = ""
-                    vm.currentPdfURL = nil
-                    vm.totalPages = 0
-                    vm.renderMetrics = nil
-                }
+                Text("EPUB 转 PDF")
+                    .font(.headline)
 
-                if inputMode == .epub { epubSection }
-                else { textSection }
+                epubSection
 
                 Divider()
 
@@ -131,10 +103,10 @@ struct ContentView: View {
                     Image(systemName: "doc.badge.plus")
                         .font(.system(size: 24))
                         .foregroundColor(isDragOver ? .accentColor : .secondary)
-                    Text(isDragOver ? "松开载入" : "拖入电子书或点击选择")
+                    Text(isDragOver ? "松开载入" : "拖入 EPUB 或点击选择")
                         .font(.callout)
                         .foregroundColor(.secondary)
-                    Text("EPUB / FB2 / HTML / MD")
+                    Text("仅支持 EPUB")
                         .font(.caption)
                         .foregroundColor(.gray.opacity(0.5))
                 }
@@ -150,11 +122,7 @@ struct ContentView: View {
             .fileImporter(
                 isPresented: $showFilePicker,
                 allowedContentTypes: [
-                    UTType(filenameExtension: "epub")!,
-                    UTType(filenameExtension: "fb2")!,
-                    UTType(filenameExtension: "html")!,
-                    UTType(filenameExtension: "md")!,
-                    UTType(filenameExtension: "markdown")!
+                    UTType(filenameExtension: "epub")!
                 ],
                 allowsMultipleSelection: false
             ) { result in
@@ -189,22 +157,6 @@ struct ContentView: View {
                 .background(Color.secondary.opacity(0.05))
                 .cornerRadius(6)
             }
-        }
-    }
-
-    private var textSection: some View {
-        Group {
-            Label("标题", systemImage: "text.quote")
-                .font(.caption)
-                .foregroundColor(.secondary)
-            TextField("可选，留空自动提取 # 标题", text: $vm.pasteTitle)
-                .textFieldStyle(.roundedBorder)
-
-            TextEditor(text: $vm.pasteText)
-                .font(.system(.body, design: .monospaced))
-                .scrollContentBackground(.visible)
-                .border(Color.secondary.opacity(0.2), width: 1)
-                .frame(minHeight: 140)
         }
     }
 
@@ -314,12 +266,7 @@ struct ContentView: View {
 
     private var actionButtons: some View {
         Group {
-            Button(action: {
-                switch inputMode {
-                case .epub: vm.convertEpub()
-                case .text: vm.convertText()
-                }
-            }) {
+            Button(action: { vm.convertEpub() }) {
                 HStack {
                     if vm.isConverting {
                         ProgressView().controlSize(.small)
@@ -329,8 +276,7 @@ struct ContentView: View {
                 .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
-            .disabled(vm.isConverting || (inputMode == .epub && vm.sourceFileURL == nil)
-                      || (inputMode == .text && vm.pasteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty))
+            .disabled(vm.isConverting || vm.sourceFileURL == nil)
             .keyboardShortcut(.return, modifiers: .command)
 
             Button(action: { vm.ensureFresh { vm.savePDF() } }) {
@@ -486,7 +432,8 @@ struct ContentView: View {
         guard let provider = providers.first else { return false }
         provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier) { item, _ in
             guard let data = item as? Data,
-                  let url = URL(dataRepresentation: data, relativeTo: nil) else { return }
+                  let url = URL(dataRepresentation: data, relativeTo: nil),
+                  url.pathExtension.lowercased() == "epub" else { return }
             DispatchQueue.main.async {
                 vm.sourceFileURL = url
                 vm.sourceFileName = url.lastPathComponent

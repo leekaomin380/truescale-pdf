@@ -16,7 +16,7 @@ struct OpenSourceComponentsView: View {
     private let components = [
         OpenSourceComponent(
             name: "Pandoc", version: "3.10", license: "GPL-2.0-or-later",
-            purpose: "解析 EPUB、HTML、Markdown 等流式文档"
+            purpose: "解析 EPUB 电子书"
         ),
         OpenSourceComponent(
             name: "GNU MP", version: "6.3.0", license: "GPLv2 分发路径",
@@ -50,7 +50,7 @@ struct OpenSourceComponentsView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("开源组件")
                         .font(.title2.bold())
-                    Text("TrueScale PDF \(appVersion)")
+                    Text("Epub 转 PDF \(appVersion)")
                         .foregroundStyle(.secondary)
                 }
                 Spacer()
@@ -80,7 +80,7 @@ struct OpenSourceComponentsView: View {
             }
             .font(.callout)
 
-            Text("TrueScale PDF 与上述项目不存在官方隶属、赞助或背书关系。")
+            Text("Epub 转 PDF 与上述项目不存在官方隶属、赞助或背书关系。")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 

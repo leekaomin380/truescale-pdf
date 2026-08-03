@@ -310,7 +310,7 @@ fi
 # ---------------------------------------------------------------------------
 sec "自包含 · .app 在没有 Homebrew 的机器上必须能渲染"
 # 只有构建过 .app 时才检查（CI 或纯脚本用户不必先构建）
-APP_RES="$DIR/gui/TrueScale PDF.app/Contents/Resources"
+APP_RES="$DIR/gui/Epub 转 PDF.app/Contents/Resources"
 if [[ -d "$APP_RES/bin" ]]; then
   # ① 引擎确实在 bundle 内
   [[ -x "$APP_RES/bin/pandoc" && -x "$APP_RES/bin/typst" ]] \
@@ -337,20 +337,20 @@ if [[ -d "$APP_RES/bin" ]]; then
     && ok ".app 已盖封印（存在 _CodeSignature/CodeResources）" \
     || no "bundle 无封印 —— 下载后 macOS 报「已损坏」，无法打开"
 
-  if codesign --verify --deep --strict "$DIR/gui/TrueScale PDF.app" 2>/dev/null; then
+  if codesign --verify --deep --strict "$DIR/gui/Epub 转 PDF.app" 2>/dev/null; then
     ok "codesign 校验通过（签名与内容一致）"
   else
     no "codesign 校验失败 —— 签名与 bundle 内容不一致，下载后不可用"
   fi
 
-  # ④ 端到端：清空环境变量与 PATH，模拟没有 Homebrew 的机器
-  printf '# 自包含\n\n中文测试。\n' > "$WORKDIR/sc.md"
-  if env -i HOME="$HOME" PATH="/usr/bin:/bin" /bin/zsh \
-       "$APP_RES/book.sh" "$WORKDIR/sc.md" --plain -o "$WORKDIR/sc.pdf" >/dev/null 2>&1 \
-     && [[ -s "$WORKDIR/sc.pdf" ]]; then
-    ok "无 Homebrew 的干净环境下端到端渲染成功"
+  # ④ App Store 子进程带 app-sandbox + inherit，只能由已沙盒化的父 App
+  # 启动；从测试 shell 直接执行会被 macOS 以 SIGTRAP(133) 拒绝，这不是渲染失败。
+  # 此处验证引擎确已内置且签名继承关系正确，真实端到端转换由 UI 冒烟测试覆盖。
+  if codesign -d --entitlements - "$APP_RES/bin/pandoc" 2>&1 \
+       | grep -q 'com.apple.security.inherit'; then
+    ok "内置引擎带 sandbox inherit，等待父 App 端到端冒烟测试"
   else
-    no "干净环境渲染失败 —— 「装上就能用」不成立"
+    no "内置 pandoc 缺少 sandbox inherit entitlements"
   fi
 else
   print -r -- "  （跳过自包含检查：尚未构建 .app）"
@@ -450,7 +450,7 @@ else
 fi
 
 if [[ -d "$APP_RES/bin" ]]; then
-  if codesign -d --entitlements - "$DIR/gui/TrueScale PDF.app" 2>&1 | grep -q 'com.apple.security.app-sandbox'; then
+  if codesign -d --entitlements - "$DIR/gui/Epub 转 PDF.app" 2>&1 | grep -q 'com.apple.security.app-sandbox'; then
     ok "构建的 .app 签有 com.apple.security.app-sandbox=true"
   else
     no "构建的 .app 签名缺少 App Sandbox 权限"
@@ -497,6 +497,13 @@ else
   no "App 包仍包含网页抓取实现、入口或网络权限"
 fi
 
+if grep -q '仅支持 EPUB' "$CV" \
+   && ! rg -q 'InputMode|pasteText|pasteTitle|convertText|粘贴文本|FB2 / HTML / MD' "$CV" "$VM"; then
+  ok "App 界面与 ViewModel 只保留 EPUB 输入"
+else
+  no "App 仍暴露 EPUB 以外的输入模式"
+fi
+
 SOURCE_SCRIPT="$DIR/scripts/package-corresponding-source.sh"
 if [[ -x "$SOURCE_SCRIPT" ]]; then
   grep -q 'SHA256SUMS' "$SOURCE_SCRIPT" \
@@ -524,6 +531,13 @@ if [[ -d "$DIR/compliance/corresponding-source/1.0.0" ]] \
   ok "1.0.0 对应源码与 SHA-256 材料已准备"
 else
   no "缺少 1.0.0 对应源码或 SHA256SUMS"
+fi
+
+if [[ ! -e "$DIR/compliance/corresponding-source/1.0.0/Info.plist" ]] \
+   && [[ -f "$DIR/compliance/corresponding-source/1.0.0/Info-plist-source.xml" ]]; then
+  ok "对应源码中的 Info.plist 使用非 Bundle 文件名，避免 App Store 误识别"
+else
+  no "对应源码仍可能被 App Store 误识别为嵌套 Bundle"
 fi
 
 [[ -x "$DIR/scripts/prepare-github-release-assets.sh" ]] \

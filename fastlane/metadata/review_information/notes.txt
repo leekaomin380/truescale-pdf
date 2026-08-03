@@ -1,10 +1,9 @@
-TrueScale PDF does not require an account or external hardware.
+Epub 转 PDF does not require an account or external hardware.
 
 To review:
-1. Choose "粘贴文本".
-2. Paste sample text.
-3. Select A4, A5, or B5 and click preview.
-4. Save the generated PDF with "另存 PDF".
+1. Select or drag in a DRM-free EPUB file.
+2. Select A4, A5, or B5 and click "预览".
+3. Save the generated PDF with "另存 PDF".
 
 All conversion happens locally. The app has no outgoing-network entitlement, analytics, advertising, sign-in, purchases, or reader-device delivery integration.
 

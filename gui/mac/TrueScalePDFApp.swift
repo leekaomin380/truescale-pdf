@@ -6,7 +6,7 @@ struct TrueScalePDFApp: App {
     @State private var showsOpenSourceComponents = false
 
     var body: some Scene {
-        WindowGroup("TrueScale PDF") {
+        WindowGroup("Epub 转 PDF") {
             ContentView()
                 .frame(minWidth: 900, minHeight: 600)
                 .sheet(isPresented: $showsOpenSourceComponents) {

@@ -100,11 +100,7 @@ class ConversionViewModel: ObservableObject {
     @Published var currentPage = 1
     @Published var renderMetrics: RenderMetrics?
 
-    // Text paste mode
-    @Published var pasteText = ""
-    @Published var pasteTitle = ""
-
-    // EPUB mode
+    // EPUB input
     @Published var sourceFileURL: URL?
     @Published var sourceFileName = ""
 
@@ -132,21 +128,17 @@ class ConversionViewModel: ObservableObject {
     ///
     /// 【为什么需要它】此前另存的唯一条件是「currentPdfURL != nil」，即
     /// 只要曾渲染过任何东西按钮就一直可用，完全不校验当前输入是否对应那个 PDF。
-    /// 后果：贴入新文字后不点预览直接另存，存出去的是【上一篇】—— 真的存错内容。
+    /// 后果：换一本 EPUB 后不点预览直接另存，可能存出去的是【上一本】。
     ///
     /// 现改为「另存自行保证正确」：比对指纹，不一致就先重渲再执行 ——
     /// 这样按钮名义与实际行为一致，用户不必记住「必须先预览」这条前置规则。
     private var renderedFingerprint: String?
 
     /// 当前输入的指纹。任何影响产物的东西都必须计入。
-    private func currentFingerprint(mode: InputKind) -> String {
-        let source: String
-        switch mode {
-        case .epub:   source = sourceFileURL?.path ?? ""
-        case .text:   source = pasteTitle + "\u{1}" + pasteText
-        }
+    private func currentFingerprint() -> String {
+        let source = sourceFileURL?.path ?? ""
         return [
-            String(describing: mode), source,
+            source,
             bodySize, margin, leading, docLang,
             selectedLatinFont, selectedCjkFont,
             config.pageW, config.pageH,
@@ -154,21 +146,15 @@ class ConversionViewModel: ObservableObject {
         ].joined(separator: "\u{1F}")
     }
 
-    /// 输入种类。与 ContentView 的 InputMode 对应，但 ViewModel 不依赖 View 层类型。
-    enum InputKind { case epub, text }
-
-    /// 当前处于哪种输入模式 —— 由 View 在切换时同步过来。
-    var activeKind: InputKind = .epub
-
     /// 产物是否已与当前输入脱节。
     var isStale: Bool {
-        currentPdfURL == nil || renderedFingerprint != currentFingerprint(mode: activeKind)
+        currentPdfURL == nil || renderedFingerprint != currentFingerprint()
     }
 
     /// 渲染世代号 —— 每次渲染成功后自增，供 View 触发预览刷新。
     ///
     /// 【为何必须有它】View 原先靠 `currentPdfURL` 与 `currentPage` 的变化来刷新预览。
-    /// 但输出路径是【确定性】的（文本模式取 markdown 哈希、EPUB 模式取源文件名），
+    /// 但输出路径是【确定性】的（EPUB 模式取源文件名），
     /// 只改字体/字号/行距时正文未变，路径与页码都不变 —— SwiftUI 的 onChange 认为
     /// 「没有变化」，于是 updatePreview 从不被调用，预览停留在上一次渲染。
     ///
@@ -180,10 +166,9 @@ class ConversionViewModel: ObservableObject {
     @Published private(set) var renderGeneration = 0
 
     /// 记录本次渲染对应的输入 —— 渲染成功后调用。
-    /// 两条渲染路径（电子书 / 文本）都在成功时收敛到这里，
-    /// 故世代号在此自增可保证「渲染成功」与「预览刷新」严格一一对应。
+    /// EPUB 渲染成功后在这里更新指纹与世代号，保证预览刷新。
     func markRendered() {
-        renderedFingerprint = currentFingerprint(mode: activeKind)
+        renderedFingerprint = currentFingerprint()
         renderGeneration += 1
     }
 
@@ -197,13 +182,10 @@ class ConversionViewModel: ObservableObject {
         cbs.forEach { $0(success) }
     }
 
-    /// 按当前输入模式触发对应的渲染流程。
+    /// 触发 EPUB 渲染流程。
     private func renderCurrentInput(_ done: @escaping (Bool) -> Void) {
         pendingRenderCallbacks.append(done)
-        switch activeKind {
-        case .epub:   convertEpub()
-        case .text:   convertText()
-        }
+        convertEpub()
     }
 
     /// 确保产物与当前输入一致；若已脱节则重新渲染，完成后执行 next。
@@ -417,7 +399,7 @@ class ConversionViewModel: ObservableObject {
 
     func convertEpub() {
         guard let src = sourceFileURL else {
-            setStatus("请先选择文件", .err)
+            setStatus("请先选择 EPUB 文件", .err)
             return
         }
         setStatus("渲染中…", .run)
@@ -443,66 +425,6 @@ class ConversionViewModel: ObservableObject {
                 "--font", "\(selectedLatinFont),\(selectedCjkFont)",
                 "--page", config.pageW, config.pageH,
                 printTime ? "--time" : "--no-time"
-            ])
-
-            DispatchQueue.main.async { [self] in
-                isConverting = false
-                if result.exitCode != 0 {
-                    setStatus("渲染失败：\(result.stderr.suffix(200))", .err)
-                    self.finishPendingRender(success: false)
-                    return
-                }
-                self.currentPdfURL = outPdf
-                let info = PDFDocument(url: outPdf)
-                self.totalPages = info?.pageCount ?? 0
-                self.currentPage = 1
-                let sizes = getPageSizes(pdf: outPdf, pages: self.totalPages)
-                self.renderMetrics = computeMetrics(pages: self.totalPages, pageSizes: sizes)
-                setStatus("渲染完成，共 \(self.totalPages) 页", .ok)
-                self.markRendered()
-                self.finishPendingRender(success: true)
-            }
-        }
-    }
-
-    func convertText() {
-        let text = pasteText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else {
-            setStatus("请先粘贴文本", .err)
-            return
-        }
-        setStatus("渲染中…", .run)
-        isConverting = true
-
-        var finalText = text
-        let title = pasteTitle.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !title.isEmpty && !text.hasPrefix("---") {
-            let safeTitle = title.replacingOccurrences(of: "\"", with: "\\\"")
-            finalText = "---\ntitle: \"\(safeTitle)\"\n---\n\n\(text)"
-        }
-        renderMarkdown(finalText, title: title)
-    }
-
-    private func renderMarkdown(_ markdown: String, title: String) {
-        DispatchQueue.global(qos: .userInitiated).async { [self] in
-            let workDir = FileManager.default.temporaryDirectory.appendingPathComponent("p2q_app")
-            try? FileManager.default.createDirectory(at: workDir, withIntermediateDirectories: true)
-
-            let slug = String(markdown.hashValue, radix: 16, uppercase: false).prefix(8)
-            let mdFile = workDir.appendingPathComponent("text_\(slug).md")
-            let outPdf = workDir.appendingPathComponent("text_\(slug).pdf")
-
-            try? markdown.write(to: mdFile, atomically: true, encoding: .utf8)
-
-            let result = runShell([
-                repoURL.appendingPathComponent("book.sh").path,
-                mdFile.path, "-o", outPdf.path,
-                "--size", bodySize, "--margin", margin,
-                "--leading", leading, "--lang", docLang,
-                "--font", "\(selectedLatinFont),\(selectedCjkFont)",
-                "--page", config.pageW, config.pageH,
-                printTime ? "--time" : "--no-time",
-                "--plain"
             ])
 
             DispatchQueue.main.async { [self] in

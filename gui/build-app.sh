@@ -1,14 +1,14 @@
 #!/bin/zsh
 # gui/build-app.sh — 编译原生 SwiftUI 应用并组装 .app bundle
 # 用法: ./gui/build-app.sh
-# 产出: gui/TrueScale PDF.app
+# 产出: gui/Epub 转 PDF.app
 
 set -euo pipefail
 
 SCRIPT_DIR="${0:A:h}"
 REPO="${SCRIPT_DIR:A:h}"
 MAC_DIR="$SCRIPT_DIR/mac"
-APP_NAME="TrueScale PDF"
+APP_NAME="Epub 转 PDF"
 APP_DIR="$SCRIPT_DIR/$APP_NAME.app"
 
 echo ">>> 清理旧 .app"

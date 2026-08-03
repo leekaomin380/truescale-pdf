@@ -1,4 +1,4 @@
-# TrueScale PDF Mac App Store workflow.
+# Epub 转 PDF Mac App Store workflow.
 # Build/upload and review submission are intentionally separate authorization boundaries.
 
 ENV["LANG"] = "en_US.UTF-8" if ENV["LANG"].to_s.empty?
@@ -51,11 +51,32 @@ def build_store_archive
     xcargs: "DEVELOPMENT_TEAM=#{TEAM_ID} -allowProvisioningUpdates",
     clean: true,
     output_directory: EXPORT_PATH,
-    output_name: "TrueScalePDF.pkg"
+    output_name: "Epub-to-PDF.pkg"
   )
 end
 
 platform :mac do
+  desc "Upload an already exported pkg to App Store Connect; never change metadata or submit for review"
+  lane :upload_existing_pkg_only do |options|
+    setup_api_key
+    pkg_path = File.expand_path(options[:pkg].to_s)
+    UI.user_error!("Pass pkg:/absolute/path/to/Epub-to-PDF.pkg") if options[:pkg].to_s.empty?
+    UI.user_error!("pkg not found: #{pkg_path}") unless File.file?(pkg_path)
+
+    upload_to_app_store(
+      pkg: pkg_path,
+      platform: "osx",
+      skip_binary_upload: false,
+      skip_metadata: true,
+      skip_screenshots: true,
+      skip_app_version_update: true,
+      submit_for_review: false,
+      run_precheck_before_submit: false,
+      force: true
+    )
+    UI.success("Build uploaded. Wait for App Store Connect processing before selecting it for review.")
+  end
+
   desc "Archive and upload the current build to App Store Connect; never submit for review"
   lane :build_and_upload_only do
     setup_api_key

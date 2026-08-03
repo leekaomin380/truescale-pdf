@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleName</key>
-    <string>TrueScale PDF</string>
+    <string>Epub 转 PDF</string>
     <key>CFBundleDisplayName</key>
-    <string>TrueScale PDF</string>
+    <string>Epub 转 PDF</string>
     <key>CFBundleIdentifier</key>
     <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
     <key>CFBundleVersion</key>

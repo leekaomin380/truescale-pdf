@@ -272,7 +272,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.figedu.truescalepdf;
-				PRODUCT_NAME = "TrueScale PDF";
+				PRODUCT_NAME = "Epub 转 PDF";
 				SDKROOT = macosx;
 			};
 			name = Release;
@@ -297,7 +297,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_BUNDLE_IDENTIFIER = com.figedu.truescalepdf;
-				PRODUCT_NAME = "TrueScale PDF";
+				PRODUCT_NAME = "Epub 转 PDF";
 				SDKROOT = macosx;
 			};
 			name = Debug;

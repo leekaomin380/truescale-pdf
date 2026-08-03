@@ -2,8 +2,8 @@
 
 ## What this software touches
 
-`book.sh` and the native app read only text entered by the user or files selected
-through the macOS file picker, run the bundled `pandoc` and `typst` executables,
+`book.sh` and the native app read only EPUB files selected by the user through
+the macOS file picker, run the bundled `pandoc` and `typst` executables,
 and write rendering intermediates to the app's temporary directory. There is no
 telemetry, advertising, account, credential handling, or reader-client delivery.
 

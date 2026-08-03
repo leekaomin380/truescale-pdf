@@ -1,12 +1,12 @@
-# TrueScale PDF
+# Epub 转 PDF
 
-TrueScale PDF 是一款 macOS 文档转换工具，把 EPUB、FB2、HTML、Markdown 和粘贴文本转换为固定版式 PDF。
+Epub 转 PDF 是一款专注的 macOS 转换工具，只把 EPUB 电子书转换为固定版式 PDF。
 
 它关注的不只是“能转成 PDF”，还关注页面的真实物理尺寸和排版稳定性。项目中的校准页、设备实测数据与回归测试用于验证页面映射、字号、边距和分页不会在转换过程中悄然漂移。
 
 ## 当前产品范围
 
-- 输入：EPUB、FB2、HTML、Markdown 和粘贴文本
+- 输入：EPUB
 - 输出：PDF
 - 页面规格：
   - A4（210 × 297 mm）— 常规打印纸
@@ -16,7 +16,7 @@ TrueScale PDF 是一款 macOS 文档转换工具，把 EPUB、FB2、HTML、Markd
 - 预览：转换前后都按目标页面比例展示
 - 隐私：无账号、无遥测、无广告；文档和文本均在设备上处理，应用不访问互联网
 
-TrueScale PDF 不包含任何电子阅读器厂商的投递功能，也不要求安装 Quaderno 或其他设备客户端。生成的 PDF 可由用户自行保存、打印或传输到任意支持 PDF 的设备。
+Epub 转 PDF 不包含任何电子阅读器厂商的投递功能，也不要求安装 Quaderno 或其他设备客户端。生成的 PDF 可由用户自行保存、打印或传输到任意支持 PDF 的设备。
 
 ## 安装与构建
 
@@ -48,7 +48,7 @@ brew install pandoc typst
 ./test.sh
 ```
 
-测试覆盖页面尺寸、Markdown 方言、输入安全处理、偏好恢复、原生 App 中 Quaderno 路径的移除，以及自包含运行时。
+测试覆盖 EPUB 转换、页面尺寸、输入安全处理、偏好恢复、原生 App 中 Quaderno 路径的移除，以及自包含运行时。
 
 ## 开源组件与对应源码
 
@@ -87,4 +87,4 @@ brew install pandoc typst
 
 用户应只转换自己有权访问和使用的内容。应用不会绕过 DRM 或其他访问控制；著作权与内容再分发责任仍由用户判断。
 
-TrueScale PDF 与 Fujitsu 或其他阅读器厂商不存在隶属、赞助或背书关系。QUADERNO 是其权利人的商标，仅在历史测量资料中作事实性指称。
+Epub 转 PDF 与 Fujitsu 或其他阅读器厂商不存在隶属、赞助或背书关系。QUADERNO 是其权利人的商标，仅在历史测量资料中作事实性指称。
