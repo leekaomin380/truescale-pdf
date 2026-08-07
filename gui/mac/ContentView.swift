@@ -70,7 +70,7 @@ struct ContentView: View {
     private var sidebar: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
-                Text("EPUB 转 PDF")
+                Text("文件转 PDF")
                     .font(.headline)
 
                 epubSection
@@ -103,10 +103,10 @@ struct ContentView: View {
                     Image(systemName: "doc.badge.plus")
                         .font(.system(size: 24))
                         .foregroundColor(isDragOver ? .accentColor : .secondary)
-                    Text(isDragOver ? "松开载入" : "拖入 EPUB 或点击选择")
+                    Text(isDragOver ? "松开载入" : "拖入文件或点击选择")
                         .font(.callout)
                         .foregroundColor(.secondary)
-                    Text("仅支持 EPUB")
+                    Text("EPUB / HTML / FB2 / Markdown")
                         .font(.caption)
                         .foregroundColor(.gray.opacity(0.5))
                 }
@@ -121,14 +121,11 @@ struct ContentView: View {
             .buttonStyle(.plain)
             .fileImporter(
                 isPresented: $showFilePicker,
-                allowedContentTypes: [
-                    UTType(filenameExtension: "epub")!
-                ],
+                allowedContentTypes: SupportedFileFormat.allowedExtensions.compactMap { UTType(filenameExtension: $0) },
                 allowsMultipleSelection: false
             ) { result in
                 if case .success(let urls) = result, let url = urls.first {
-                    vm.sourceFileURL = url
-                    vm.sourceFileName = url.lastPathComponent
+                    _ = vm.selectSourceFile(url: url)
                 }
             }
 
@@ -140,13 +137,18 @@ struct ContentView: View {
                         .font(.callout)
                         .lineLimit(1)
                         .truncationMode(.middle)
+                    if let typeName = vm.sourceFileTypeDisplayName {
+                        Text(typeName)
+                            .font(.caption2)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.secondary.opacity(0.12))
+                            .cornerRadius(4)
+                            .foregroundColor(.secondary)
+                    }
                     Spacer()
                     Button(action: {
-                        vm.sourceFileURL = nil
-                        vm.sourceFileName = ""
-                        vm.currentPdfURL = nil
-                        vm.totalPages = 0
-                        vm.renderMetrics = nil
+                        vm.clearSourceFile()
                     }) {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundColor(.secondary)
@@ -435,8 +437,7 @@ struct ContentView: View {
                   let url = URL(dataRepresentation: data, relativeTo: nil),
                   url.pathExtension.lowercased() == "epub" else { return }
             DispatchQueue.main.async {
-                vm.sourceFileURL = url
-                vm.sourceFileName = url.lastPathComponent
+                _ = vm.selectSourceFile(url: url)
             }
         }
         return true
