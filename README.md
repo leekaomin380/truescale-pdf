@@ -70,7 +70,7 @@ brew install pandoc typst
 源码归档由以下命令生成：
 
 ```bash
-./scripts/package-corresponding-source.sh compliance/corresponding-source/1.0.0
+./scripts/package-corresponding-source.sh compliance/corresponding-source/1.1.0
 ./scripts/prepare-github-release-assets.sh
 ```
 

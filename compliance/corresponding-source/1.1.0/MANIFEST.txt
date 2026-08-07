@@ -1,0 +1,11 @@
+Epub 转 PDF corresponding source package
+Generated (UTC): 2026-08-07T06:51:03Z
+Architecture: arm64
+Pandoc: 3.10
+Pandoc binary: /opt/homebrew/opt/pandoc/bin/pandoc
+GNU MP: 6.3.0
+GNU MP prefix: /opt/homebrew/opt/gmp
+
+The app modifies only Mach-O load paths and signatures after copying the
+Homebrew binaries. package-runtime.sh records those reproducible operations.
+SHA256SUMS authenticates every source and build-material file in this folder.

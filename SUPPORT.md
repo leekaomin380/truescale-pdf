@@ -1,12 +1,14 @@
 # Epub 转 PDF 支持
 
-Epub 转 PDF 把 EPUB 电子书转换为 A4、A5 或 B5 固定版式 PDF。
+Epub 转 PDF 把 EPUB、HTML、FB2 和 Markdown 文件转换为 A4、A5 或 B5 固定版式 PDF。
 
 ## 常见问题
 
 ### 支持哪些输入？
 
-应用只接受 EPUB 文件。带 DRM 的 EPUB 无法转换。
+应用接受 EPUB、HTML/HTM、FB2 和 Markdown 文件。带 DRM 的电子书无法转换。
+
+HTML 按文档结构重新排版，并支持本地相对路径图片；应用不执行 JavaScript，因此依赖动态脚本或复杂 CSS 的页面不会保持浏览器中的像素级外观。
 
 ### PDF 会被自动发送到设备吗？
 

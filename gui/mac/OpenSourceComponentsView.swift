@@ -16,7 +16,7 @@ struct OpenSourceComponentsView: View {
     private let components = [
         OpenSourceComponent(
             name: "Pandoc", version: "3.10", license: "GPL-2.0-or-later",
-            purpose: "解析 EPUB 电子书"
+            purpose: "解析 EPUB、HTML、FB2 和 Markdown 文档"
         ),
         OpenSourceComponent(
             name: "GNU MP", version: "6.3.0", license: "GPLv2 分发路径",
@@ -29,7 +29,7 @@ struct OpenSourceComponentsView: View {
     ]
 
     private var appVersion: String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0.0"
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.1.0"
     }
 
     private var releaseURL: URL? {

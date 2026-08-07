@@ -450,7 +450,7 @@ class ConversionViewModel: ObservableObject {
 
     func convertEpub() {
         guard let src = sourceFileURL else {
-            setStatus("请先选择 EPUB 文件", .err)
+            setStatus("请先选择要转换的文件", .err)
             return
         }
         setStatus("渲染中…", .run)

@@ -356,6 +356,14 @@ else
   print -r -- "  （跳过自包含检查：尚未构建 .app）"
 fi
 
+APP_VERSION=$(awk -F '"' '/MARKETING_VERSION:/ { print $2; exit }' "$DIR/project.yml")
+if [[ -n "$APP_VERSION" ]] \
+   && grep -q 'SOURCE_DIR="$REPO/compliance/corresponding-source/$APP_VERSION"' "$DIR/gui/package-runtime.sh"; then
+  ok "发布包只嵌入与当前 App 版本匹配的对应源码"
+else
+  no "对应源码打包逻辑未固定到当前 App 版本"
+fi
+
 # ---------------------------------------------------------------------------
 sec "预览刷新 · 只改排版参数时预览也必须重画"
 # 【这个 bug 的形态值得记住】改字体后重新预览，预览图【不变】。
@@ -589,16 +597,16 @@ EOF
 if "$DIR/book.sh" "$HTML_DIR/测试 文章.HTML" -o "$WORK/html_test.pdf" >/dev/null 2>"$WORK/html_err"; then
   ok "HTML 文件（大写 .HTML、中文目录与空格路径）转换成功"
 
-  # 检查尺寸统一与页宽符合 A5 (≈445pt)
+  # 检查尺寸统一与页宽符合 App Store 版默认 A4 (≈595pt)
   HSZ=$(page_sizes "$WORK/html_test.pdf"); HBCNT=$(print -r -- "$HSZ" | grep -c x)
   [[ "$HBCNT" == "1" ]] && ok "HTML 转换输出页面尺寸统一" \
                         || no "HTML 转换输出页面尺寸不统一：$(print -r -- $HSZ | tr '\n' ' ')"
 
   HW=$(print -r -- "$HSZ" | head -1 | grep -oE '^[0-9.]+' | cut -d. -f1)
-  if [[ -n "$HW" ]] && (( HW >= 442 && HW <= 448 )); then
-    ok "HTML 输出页宽正确（${HW}pt ≈ A5 445pt）"
+  if [[ -n "$HW" ]] && (( HW >= 592 && HW <= 598 )); then
+    ok "HTML 输出页宽正确（${HW}pt ≈ A4 595pt）"
   else
-    no "HTML 输出页宽错误：${HW}pt（应 ≈445pt）"
+    no "HTML 输出页宽错误：${HW}pt（应 ≈595pt）"
   fi
 
   HTXT=$(pdftotext "$WORK/html_test.pdf" - 2>/dev/null)

@@ -1,10 +1,12 @@
 Epub 转 PDF does not require an account or external hardware.
 
 To review:
-1. Select or drag in a DRM-free EPUB file.
+1. Select or drag in a local EPUB, HTML/HTM, FB2, or Markdown file.
 2. Select A4, A5, or B5 and click "预览".
 3. Save the generated PDF with "另存 PDF".
 
 All conversion happens locally. The app has no outgoing-network entitlement, analytics, advertising, sign-in, purchases, or reader-device delivery integration.
+
+HTML is parsed statically: JavaScript is not executed and no remote resources are fetched. A small self-contained HTML sample may be used for review.
 
 Pandoc, Typst, and GNU MP licenses and corresponding source materials are included in the app under Resources/licenses and are also published with the matching GitHub Release.

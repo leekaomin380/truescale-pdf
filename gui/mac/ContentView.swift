@@ -22,7 +22,7 @@ struct ContentView: View {
         return name
     }
 
-    /// 是否已有可渲染的 EPUB 输入。
+    /// 是否已有可渲染的本地文件输入。
     /// 另存不再要求「必须先预览」—— 它会在内容脱节时自行重渲（见 vm.ensureFresh），
     /// 故按钮条件与「预览」一致：有输入即可点。
     private var hasInput: Bool {
