@@ -35,7 +35,7 @@ def project_value(key)
 end
 
 def build_store_archive
-  sh("xcodegen generate")
+  sh("cd #{File.expand_path('..', __dir__).shellescape} && xcodegen generate")
   build_mac_app(
     project: PROJECT_PATH,
     scheme: SCHEME,
