@@ -192,7 +192,11 @@ struct ContentView: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
             Picker("", selection: $vm.selectedPresetID) {
-                ForEach(ConversionViewModel.pagePresets) { preset in
+                ForEach(ConversionViewModel.pagePresets.filter(\.isPrimary)) { preset in
+                    Text(preset.displayName).tag(preset.id)
+                }
+                Divider()
+                ForEach(ConversionViewModel.pagePresets.filter { !$0.isPrimary }) { preset in
                     Text(preset.displayName).tag(preset.id)
                 }
             }

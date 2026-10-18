@@ -283,19 +283,67 @@ else
   ok "Mac app 源代码与随包运行时均已移除 QUADERNO 投递路径"
 fi
 
-PRESET_COUNT=$(sed -n '/static let pagePresets/,/\]/p' "$VM" | grep -c 'PagePreset(' || true)
-if [[ "$PRESET_COUNT" -eq 3 ]] \
-  && grep -q 'id: "a4"' "$VM" \
-  && grep -q 'id: "a5"' "$VM" \
-  && grep -q 'id: "b5"' "$VM"; then
-  ok "PagePreset 声明块包含且仅包含 A4/A5/B5 恰好 3 个规格选项"
+# 预设清单以 ViewModel 源码为唯一事实源：解析出 id / 宽 / 高 / 是否常用。
+# 输出每行：id widthMm heightMm primary(1|0)
+PRESETS=$(python3 - "$VM" <<'PY'
+import re, sys
+src = open(sys.argv[1], encoding="utf-8").read()
+block = src[src.index("static let pagePresets"):]
+block = block[:block.index("\n    ]")]
+for m in re.finditer(r'PagePreset\((.*?)\n        \)', block, re.S):
+    b = m.group(1)
+    pid = re.search(r'id: "([^"]+)"', b).group(1)
+    w = re.search(r'widthMm: ([0-9.]+)', b).group(1)
+    h = re.search(r'heightMm: ([0-9.]+)', b).group(1)
+    primary = 0 if re.search(r'isPrimary: false', b) else 1
+    print(pid, w, h, primary)
+PY
+)
+PRIMARY_IDS=$(print -r -- "$PRESETS" | awk '$4==1{print $1}' | tr '\n' ' ')
+if [[ "$PRIMARY_IDS" == "a4 a5 b5 " ]]; then
+  ok "常用规格依次为 A4/A5/B5（其余规格位于分隔线之后）"
 else
-  no "PagePreset 规格选项不等于 3 个或预设 ID 缺失"
+  no "常用规格应依次为 a4 a5 b5，实际为：$PRIMARY_IDS"
 fi
+
+ALL_IDS=$(print -r -- "$PRESETS" | awk '{print $1}')
+if [[ $(print -r -- "$ALL_IDS" | sort -u | wc -l) -eq $(print -r -- "$ALL_IDS" | wc -l) ]]; then
+  ok "PagePreset.id 无重复（$(print -r -- "$ALL_IDS" | wc -l | tr -d ' ') 个规格）"
+else
+  no "PagePreset.id 存在重复：$(print -r -- "$ALL_IDS" | sort | uniq -d | tr '\n' ' ')"
+fi
+
+grep -q 'filter(\\.isPrimary)' "$CV" && grep -q 'filter { !$0.isPrimary }' "$CV" \
+  && ok "尺寸菜单按常用 / 更多两组展示" \
+  || no "尺寸菜单未按 isPrimary 分组"
 
 grep -q '长宽约为 A4 的 84%，面积约为 A4 的七成。' "$VM" \
   && ok "B5 包含正确的辅助说明（中文句号结尾）" \
   || no "B5 辅助说明缺失或文本标点非中文句号"
+
+# 每个预设都必须真实渲染出该物理尺寸：GUI 传给 book.sh 的就是 "%.1fmm"。
+# 容差 ±1.5pt（≈0.5mm），全书页面还须统一。
+pandoc "$WORK/trap.md" -o "$WORK/preset.epub" 2>/dev/null
+print -r -- "$PRESETS" | while read -r PID PW PH _; do
+  OUT="$WORK/preset-$PID.pdf"
+  if ! "$DIR/book.sh" "$WORK/preset.epub" -o "$OUT" \
+       --page "$(printf '%.1fmm' $PW)" "$(printf '%.1fmm' $PH)" >/dev/null 2>"$WORK/preset-err"; then
+    no "规格 $PID 渲染失败：$(tail -2 "$WORK/preset-err" | tr '\n' ' ')"
+    continue
+  fi
+  SZ=$(page_sizes "$OUT")
+  if [[ $(print -r -- "$SZ" | grep -c x) != "1" ]]; then
+    no "规格 $PID 全书页面尺寸不统一：$(print -r -- $SZ | tr '\n' ' ')"
+    continue
+  fi
+  read -r GW _ GH <<< "$SZ"
+  if python3 -c "import sys;w,h,ew,eh=map(float,sys.argv[1:]);ew*=72/25.4;eh*=72/25.4;sys.exit(0 if abs(w-ew)<=1.5 and abs(h-eh)<=1.5 else 1)" \
+       "$GW" "$GH" "$PW" "$PH"; then
+    ok "规格 $PID 输出 ${GW}×${GH}pt，符合 ${PW}×${PH}mm 且全书统一"
+  else
+    no "规格 $PID 输出 ${GW}×${GH}pt，偏离 ${PW}×${PH}mm"
+  fi
+done
 
 if grep -q 'pref.pagePresetID' "$VM" \
   && grep -q 'selectedPresetID' "$VM" \

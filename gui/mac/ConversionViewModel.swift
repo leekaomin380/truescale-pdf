@@ -35,6 +35,8 @@ struct PagePreset: Identifiable, Hashable, Equatable {
     let widthMm: Double
     let heightMm: Double
     let secondaryExplanation: String?
+    /// 常用规格排在菜单最前；其余规格放在分隔线之后，避免首屏认知过载。
+    var isPrimary: Bool = true
 
     var pageW: String { "\(String(format: "%.1f", widthMm))mm" }
     var pageH: String { "\(String(format: "%.1f", heightMm))mm" }
@@ -92,6 +94,51 @@ class ConversionViewModel: ObservableObject {
             widthMm: 176.0,
             heightMm: 250.0,
             secondaryExplanation: "长宽约为 A4 的 84%，面积约为 A4 的七成。"
+        ),
+        PagePreset(
+            id: "a6",
+            name: "A6 · A5 对折大小",
+            dimensionsLabel: "105 × 148 mm",
+            widthMm: 105.0,
+            heightMm: 148.0,
+            secondaryExplanation: "口袋书大小；版心较窄，建议配合较小字号与边距。",
+            isPrimary: false
+        ),
+        PagePreset(
+            id: "b6",
+            name: "B6 · B5 对折大小",
+            dimensionsLabel: "125 × 176 mm",
+            widthMm: 125.0,
+            heightMm: 176.0,
+            secondaryExplanation: nil,
+            isPrimary: false
+        ),
+        PagePreset(
+            id: "16k",
+            name: "16 开 · 国内教材常用",
+            dimensionsLabel: "185 × 260 mm",
+            widthMm: 185.0,
+            heightMm: 260.0,
+            secondaryExplanation: "国内教材、期刊常用开本（正度 16 开成品尺寸）。",
+            isPrimary: false
+        ),
+        PagePreset(
+            id: "32k",
+            name: "32 开 · 国内图书常用",
+            dimensionsLabel: "130 × 184 mm",
+            widthMm: 130.0,
+            heightMm: 184.0,
+            secondaryExplanation: "国内小说、普通图书常用开本（正度 32 开成品尺寸）。",
+            isPrimary: false
+        ),
+        PagePreset(
+            id: "letter",
+            name: "Letter · 美国常规打印纸",
+            dimensionsLabel: "8.5 × 11 in（215.9 × 279.4 mm）",
+            widthMm: 215.9,
+            heightMm: 279.4,
+            secondaryExplanation: nil,
+            isPrimary: false
         )
     ]
 
